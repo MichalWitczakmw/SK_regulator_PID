@@ -35,7 +35,6 @@ MainWindow::MainWindow(QWidget *parent)
     // Podłącz sygnał kliknięcia przycisku do naszego slotu
     connect(ui->Network, &QPushButton::clicked, this, &MainWindow::on_Network_clicked);
 
-    connect(ui->Network, &QPushButton::clicked, this, &MainWindow::on_network_button_clicked);
 
 }
 
@@ -539,6 +538,7 @@ void MainWindow::handleNetworkInstance(QObject *networkInstance)
 {
     if (auto *serverInstance = qobject_cast<MyTCPServer *>(networkInstance)) {
         server = serverInstance;
+        Simulation::get_instance().set_mode(SimulationMode::Server);
 
         // PODPIĘCIE: SYGNAŁ → SLOT
         connect(&simulation, &Simulation::frameReadyToSendToClient,
@@ -573,6 +573,7 @@ void MainWindow::handleNetworkInstance(QObject *networkInstance)
 
     } else if (auto *clientInstance = qobject_cast<MyTCPClient *>(networkInstance)) {
         client = clientInstance;
+        Simulation::get_instance().set_mode(SimulationMode::Client);
 
         // PODPIĘCIE: SYGNAŁ → SLOT
         connect(&simulation, &Simulation::frameReadyToSendToServer,
@@ -607,34 +608,3 @@ void MainWindow::handleNetworkInstance(QObject *networkInstance)
     }
 }
 
-void MainWindow::on_network_button_clicked()
-{
-    QStringList modes;
-    modes << "Server" << "Client" << "Offline";
-
-    bool ok = false;
-    QString choice = QInputDialog::getItem(this, tr("Select Network Mode"),
-                                           tr("Select mode:"), modes, 2, false, &ok);
-
-    if (!ok) return;
-
-    if (choice == "Server") {
-        selected_network_mode = SimulationMode::Server;
-    } else if (choice == "Client") {
-        selected_network_mode = SimulationMode::Client;
-    } else {
-        selected_network_mode = SimulationMode::Offline;
-    }
-
-    Simulation::get_instance().set_mode(selected_network_mode);
-
-    // Aktualizacja GUI (np. statusy)
-    QLabel* label = findChild<QLabel*>("labelConnected");
-    if (label) {
-        switch (selected_network_mode) {
-        case SimulationMode::Server:  label->setText("Server Mode"); break;
-        case SimulationMode::Client:  label->setText("Client Mode"); break;
-        default:                      label->setText("Offline Mode"); break;
-        }
-    }
-}

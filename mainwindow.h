@@ -80,7 +80,6 @@ private slots:
 
     void on_chackNetwork_clicked();
 
-    void on_network_button_clicked();
 
 
 private:

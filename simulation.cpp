@@ -137,30 +137,35 @@ void Simulation::simulate()
     }
     case SimulationMode::Client:
     {
-        // Klient odbiera bramkę od serwera, liczy ARX/noise i odsyła zaktualizowaną bramkę
-        // Tu zakładamy, że bramka została już odebrana i jest podana do tej metody (np. przez pole/argument)
-
-        if (pendingFrameFromServer) // pendingFrameFromServer to wskaźnik lub pole na aktualną bramkę do przetworzenia
+        if (pendingFrameFromServer)
         {
             SimulationFrame& frame = *pendingFrameFromServer;
 
-            // Na podstawie pid_output liczymy ARX
+            // 1. Licz ARX i Noise na podstawie PID output z ramki
             float arx_output = this->arx->run(frame.pid_output);
-
             frame.arx_output = arx_output;
             frame.noise = this->arx->noise_part;
 
+            // 2. Dodaj do historii ramek (pełna ramka)
             this->frames.push_back(frame);
+
+            // 3. Emituj WSZYSTKIE serie — dane z ramki od serwera + ARX/Noise liczone lokalnie
+            emit this->add_series("I", frame.i, ChartPosition::top);
+            emit this->add_series("D", frame.d, ChartPosition::top);
+            emit this->add_series("P", frame.p, ChartPosition::top);
+            emit this->add_series("PID", frame.pid_output, ChartPosition::top);
+
+            emit this->add_series("Generator", frame.geneartor_output, ChartPosition::bottom);
+
+            emit this->add_series("Error", frame.error, ChartPosition::middle);
 
             emit this->add_series("ARX", arx_output, ChartPosition::bottom);
             emit this->add_series("Noise", this->arx->noise_part, ChartPosition::middle);
-            emit this->add_series("Generator", frame.geneartor_output, ChartPosition::bottom);
+
             emit this->update_chart();
 
-            // Odesłanie zaktualizowanej bramki do serwera
             sendFrameToServer(frame);
-
-            pendingFrameFromServer.reset(); // lub nullptr
+            pendingFrameFromServer.reset();
         }
         break;
     }
