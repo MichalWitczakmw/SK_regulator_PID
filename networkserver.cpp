@@ -90,10 +90,11 @@ void MyTCPServer::disconnectClients()
     for (QTcpSocket *client : m_clients) {
         if (client->isOpen()) {
             client->write("Server disconnected");
+            client->flush(); // Dodaj to!
             client->disconnectFromHost();
         }
     }
     m_clients.clear();
-    emit clientDisconnected(); // Emituj sygnał o rozłączeniu
-    stopListening();           // Zatrzymaj nasłuchiwanie
+    emit clientDisconnected();
+    stopListening();
 }

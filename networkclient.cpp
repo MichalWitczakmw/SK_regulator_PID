@@ -50,6 +50,10 @@ void MyTCPClient::slot_socket_disconnected()
 void MyTCPClient::slot_readyRead()
 {
     auto message = m_socket.readAll();
+    if (message == "Server disconnected") {
+        emit serverDisconnected();
+        return;
+    }
     emit messageRecived(message);
 }
 
