@@ -40,10 +40,9 @@ void MyTCPClient::slot_connected()
 
 void MyTCPClient::slot_socket_disconnected()
 {
-    // Tylko jeśli to serwer zamknął połączenie (a nie klient sam się odłączył)
-    if (m_socket.state() == QAbstractSocket::UnconnectedState) {
-        emit serverDisconnected();
-    }
+    m_ipAddress.clear();
+    m_port = 0;
+    emit serverDisconnected();
 }
 
 

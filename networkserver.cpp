@@ -49,7 +49,11 @@ void MyTCPServer::slot_new_client()
 void MyTCPServer::slot_client_disconnetcted()
 {
     int idx = getClinetID();
-    m_clients.removeAt(idx);
+    if (idx >= 0 && idx < m_clients.size()) {
+        QTcpSocket *client = m_clients.at(idx);
+        m_clients.removeAt(idx);
+        client->deleteLater(); // Zwalnia pamięć po gnieździe
+    }
     emit clientDisconnected();
 }
 

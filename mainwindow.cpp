@@ -552,6 +552,9 @@ void MainWindow::handleNetworkInstance(QObject *networkInstance)
         connect(server, &MyTCPServer::clientDisconnected, this, [this]() {
             QMessageBox::information(this, "Disconnected", "Client has disconnected.");
             ui->labelConnected->setText("No clients connected");
+            // Jeśli chcesz skasować instancję serwera (np. po rozłączeniu ostatniego klienta):
+            delete server;
+            server = nullptr;
         });
         // Ustawienie statusu serwera
         ui->Network->setText("Disconnect");
@@ -577,6 +580,8 @@ void MainWindow::handleNetworkInstance(QObject *networkInstance)
             QMessageBox::warning(this, "Connection Lost", "Server is not available.");
             ui->labelConnected->setText("Disconnected");
             ui->Network->setText("Network");
+            delete client;
+            client = nullptr;
         });
 
         ui->labelConnected->setText("Connecting...");
