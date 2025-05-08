@@ -99,48 +99,49 @@ void Simulation::simulate()
     }
     case SimulationMode::Server:
     {
-        // Serwer liczy swoją część i wysyła "bramkę" do klienta
+        // Synchronizacja: serwer czeka na odpowiedź od klienta!
         static float error = 0;
         static float generator = 0;
         static float pid_output = 0;
 
-        const size_t tick = this->get_tick();
-        this->current_time += interval / 1000.0f;
+        // Dodaj zmienną członkowską klasy: bool waitingForClient = false;
+        if (!waitingForClient) {
+            const size_t tick = this->get_tick();
+            this->current_time += interval / 1000.0f;
 
-        generator = this->generator->run(current_time);
-        error = generator - 0; // ARX output jeszcze nieznany na tym etapie na serwerze
+            generator = this->generator->run(current_time);
+            error = generator - 0; // ARX output jeszcze nieznany na tym etapie na serwerze
 
-        pid_output = this->pid->run(error);
+            pid_output = this->pid->run(error);
 
-        SimulationFrame frame{
-            .tick = tick,
-            .geneartor_output = generator,
-            .p = this->pid->proportional_part,
-            .i = this->pid->integral_part,
-            .d = this->pid->derivative_part,
-            .pid_output = pid_output,
-            .error = error,
-            .arx_output = 0.0f, // Uzupełni klient
-            .noise = 0.0f,      // Uzupełni klient
-        };
+            SimulationFrame frame{
+                .tick = tick,
+                .geneartor_output = generator,
+                .p = this->pid->proportional_part,
+                .i = this->pid->integral_part,
+                .d = this->pid->derivative_part,
+                .pid_output = pid_output,
+                .error = error,
+                .arx_output = 0.0f, // Uzupełni klient
+                .noise = 0.0f,      // Uzupełni klient
+            };
 
-        // Dodajemy do historii, nawet jeśli arx_output/noise będą uzupełnione po powrocie bramki
-        this->frames.push_back(frame);
+            this->frames.push_back(frame);
 
-        // Teraz wysyłka bramki do klienta przez sygnał
-        sendFrameToClient(frame);
+            sendFrameToClient(frame);
 
-        // Dalsza logika (np. oczekiwanie na uzupełnioną bramkę od klienta) po stronie slotu odbiorczego
-
-        this->tick++;
+            waitingForClient = true; // Czekaj na odpowiedź od klienta!
+        }
+        // Jeśli waitingForClient == true, nie rób nic – czekaj na receiveFrameFromClient()
         break;
     }
     case SimulationMode::Client:
-        if (pendingFrameFromServer)
-        {
+    {
+        // Synchronizacja: klient czeka na ramkę od serwera!
+        if (pendingFrameFromServer) {
             SimulationFrame& frame = *pendingFrameFromServer;
 
-            // Licz tylko ARX i Noise
+            // Licz ARX/noise
             float arx_output = this->arx->run(frame.pid_output);
             frame.arx_output = arx_output;
             frame.noise = this->arx->noise_part;
@@ -163,9 +164,10 @@ void Simulation::simulate()
             sendFrameToServer(frame);
             pendingFrameFromServer.reset();
         }
-        break;
+        // Jeśli nie ma pendingFrameFromServer – czekaj na receiveFrameFromServer()
+               break;
     }
-
+    }
 }
 
 void Simulation::sendFrameToClient(const SimulationFrame &frame)
@@ -195,6 +197,7 @@ void Simulation::receiveFrameFromClient(const SimulationFrame &frame)
         last.noise = frame.noise;
         // Możesz tu dodać kod do aktualizacji wykresów po stronie serwera, jeśli chcesz
     }
+    waitingForClient = false;
 }
 
 void Simulation::set_ticks_per_second(float ticks_per_second)

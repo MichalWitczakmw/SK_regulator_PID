@@ -125,6 +125,8 @@ private:
     explicit Simulation(QObject *parent = nullptr);
     ~Simulation();
 
+    bool waitingForClient = false;
+
 signals:
 };
 
