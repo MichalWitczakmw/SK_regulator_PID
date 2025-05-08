@@ -5,6 +5,7 @@ MyTCPServer::MyTCPServer(QObject *parent)
     m_server(this)
 {
     connect(&m_server,SIGNAL(newConnection()),this,SLOT(slot_new_client()));
+
 }
 
 bool MyTCPServer::startListening(int port)
@@ -35,28 +36,38 @@ void MyTCPServer::slot_new_client()
 {
     QTcpSocket *client = m_server.nextPendingConnection();
     m_clients.push_back(client);
-    auto adr = client->peerAddress();
-    QString msgBack = "Hello client " + QString::number( m_clients.indexOf(client));
-    client->write(msgBack.toUtf8());
+    auto clientAddress = client->peerAddress().toString();
+    auto clientPort = client->peerPort();
 
-    connect(client,SIGNAL(disconnected()),this,SLOT(slot_client_disconnetcted()));
-    connect(client,SIGNAL(readyRead()),this,SLOT(slot_newMsg()));
+    // Połącz sygnały zdarzeń klienta
+    connect(client, &QTcpSocket::disconnected, this, &MyTCPServer::slot_client_disconnetcted);
+    connect(client, &QTcpSocket::readyRead, this, &MyTCPServer::slot_newMsg);
 
-    emit newClientConnected(adr.toString());
+    // Wyślij sygnał do GUI o nowym kliencie
+    emit clientConnected(clientAddress, clientPort);
 }
-
 void MyTCPServer::slot_client_disconnetcted()
 {
     int idx = getClinetID();
     m_clients.removeAt(idx);
-    emit clientDisconnetced(idx);
+    emit clientDisconnected();
 }
 
 void MyTCPServer::slot_newMsg()
 {
-    int idx = getClinetID();
-    QString msg = m_clients.at(idx)->readAll();
-    emit newMsgFrom(msg, idx);
+    QTcpSocket *client = qobject_cast<QTcpSocket *>(sender());
+    if (!client) return;
+
+    QByteArray data = client->readAll();
+    QString message = QString::fromUtf8(data);
+
+    if (message == "connected") {
+        // Klient potwierdził połączenie
+        emit clientConfirmedConnection();
+    } else {
+        // Obsługa innych wiadomości
+        qDebug() << "Received message from client:" << message;
+    }
 }
 
 bool MyTCPServer::getClinetID()
@@ -65,4 +76,24 @@ bool MyTCPServer::getClinetID()
     return m_clients.indexOf(client);
 }
 
+// Dodanie funkcji sprawdzającej faktyczne połączenie klienta
+bool MyTCPServer::isClientConnected(int clientIndex) const
+{
+    if (clientIndex < 0 || clientIndex >= m_clients.size())
+        return false;
 
+    return m_clients[clientIndex]->state() == QAbstractSocket::ConnectedState;
+}
+
+void MyTCPServer::disconnectClients()
+{
+    for (QTcpSocket *client : m_clients) {
+        if (client->isOpen()) {
+            client->write("Server disconnected");
+            client->disconnectFromHost();
+        }
+    }
+    m_clients.clear();
+    emit clientDisconnected(); // Emituj sygnał o rozłączeniu
+    stopListening();           // Zatrzymaj nasłuchiwanie
+}

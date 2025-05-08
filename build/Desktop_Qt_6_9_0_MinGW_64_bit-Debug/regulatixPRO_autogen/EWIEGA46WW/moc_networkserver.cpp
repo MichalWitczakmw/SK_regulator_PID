@@ -42,9 +42,13 @@ template <> constexpr inline auto MyTCPServer::qt_create_metaobjectdata<qt_meta_
         "newClientConnected",
         "",
         "adr",
-        "clientDisconnetced",
-        "num",
+        "clientDisconnected",
         "newMsgFrom",
+        "num",
+        "clientConnected",
+        "clientAddress",
+        "clientPort",
+        "clientConfirmedConnection",
         "slot_new_client",
         "slot_client_disconnetcted",
         "slot_newMsg"
@@ -55,20 +59,24 @@ template <> constexpr inline auto MyTCPServer::qt_create_metaobjectdata<qt_meta_
         QtMocHelpers::SignalData<void(QString)>(1, 2, QMC::AccessPublic, QMetaType::Void, {{
             { QMetaType::QString, 3 },
         }}),
-        // Signal 'clientDisconnetced'
-        QtMocHelpers::SignalData<void(int)>(4, 2, QMC::AccessPublic, QMetaType::Void, {{
-            { QMetaType::Int, 5 },
-        }}),
+        // Signal 'clientDisconnected'
+        QtMocHelpers::SignalData<void()>(4, 2, QMC::AccessPublic, QMetaType::Void),
         // Signal 'newMsgFrom'
-        QtMocHelpers::SignalData<void(QString, int)>(6, 2, QMC::AccessPublic, QMetaType::Void, {{
-            { QMetaType::QString, 2 }, { QMetaType::Int, 5 },
+        QtMocHelpers::SignalData<void(QString, int)>(5, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { QMetaType::QString, 2 }, { QMetaType::Int, 6 },
         }}),
+        // Signal 'clientConnected'
+        QtMocHelpers::SignalData<void(QString, quint16)>(7, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { QMetaType::QString, 8 }, { QMetaType::UShort, 9 },
+        }}),
+        // Signal 'clientConfirmedConnection'
+        QtMocHelpers::SignalData<void()>(10, 2, QMC::AccessPublic, QMetaType::Void),
         // Slot 'slot_new_client'
-        QtMocHelpers::SlotData<void()>(7, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(11, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'slot_client_disconnetcted'
-        QtMocHelpers::SlotData<void()>(8, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(12, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'slot_newMsg'
-        QtMocHelpers::SlotData<void()>(9, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(13, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -93,20 +101,26 @@ void MyTCPServer::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
         case 0: _t->newClientConnected((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
-        case 1: _t->clientDisconnetced((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
+        case 1: _t->clientDisconnected(); break;
         case 2: _t->newMsgFrom((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[2]))); break;
-        case 3: _t->slot_new_client(); break;
-        case 4: _t->slot_client_disconnetcted(); break;
-        case 5: _t->slot_newMsg(); break;
+        case 3: _t->clientConnected((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<quint16>>(_a[2]))); break;
+        case 4: _t->clientConfirmedConnection(); break;
+        case 5: _t->slot_new_client(); break;
+        case 6: _t->slot_client_disconnetcted(); break;
+        case 7: _t->slot_newMsg(); break;
         default: ;
         }
     }
     if (_c == QMetaObject::IndexOfMethod) {
         if (QtMocHelpers::indexOfMethod<void (MyTCPServer::*)(QString )>(_a, &MyTCPServer::newClientConnected, 0))
             return;
-        if (QtMocHelpers::indexOfMethod<void (MyTCPServer::*)(int )>(_a, &MyTCPServer::clientDisconnetced, 1))
+        if (QtMocHelpers::indexOfMethod<void (MyTCPServer::*)()>(_a, &MyTCPServer::clientDisconnected, 1))
             return;
         if (QtMocHelpers::indexOfMethod<void (MyTCPServer::*)(QString , int )>(_a, &MyTCPServer::newMsgFrom, 2))
+            return;
+        if (QtMocHelpers::indexOfMethod<void (MyTCPServer::*)(QString , quint16 )>(_a, &MyTCPServer::clientConnected, 3))
+            return;
+        if (QtMocHelpers::indexOfMethod<void (MyTCPServer::*)()>(_a, &MyTCPServer::clientConfirmedConnection, 4))
             return;
     }
 }
@@ -130,14 +144,14 @@ int MyTCPServer::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 6)
+        if (_id < 8)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 6;
+        _id -= 8;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 6)
+        if (_id < 8)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 6;
+        _id -= 8;
     }
     return _id;
 }
@@ -149,14 +163,26 @@ void MyTCPServer::newClientConnected(QString _t1)
 }
 
 // SIGNAL 1
-void MyTCPServer::clientDisconnetced(int _t1)
+void MyTCPServer::clientDisconnected()
 {
-    QMetaObject::activate<void>(this, &staticMetaObject, 1, nullptr, _t1);
+    QMetaObject::activate(this, &staticMetaObject, 1, nullptr);
 }
 
 // SIGNAL 2
 void MyTCPServer::newMsgFrom(QString _t1, int _t2)
 {
     QMetaObject::activate<void>(this, &staticMetaObject, 2, nullptr, _t1, _t2);
+}
+
+// SIGNAL 3
+void MyTCPServer::clientConnected(QString _t1, quint16 _t2)
+{
+    QMetaObject::activate<void>(this, &staticMetaObject, 3, nullptr, _t1, _t2);
+}
+
+// SIGNAL 4
+void MyTCPServer::clientConfirmedConnection()
+{
+    QMetaObject::activate(this, &staticMetaObject, 4, nullptr);
 }
 QT_WARNING_POP

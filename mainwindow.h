@@ -24,6 +24,10 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void updateControlsBasedOnRole(bool isServer);
+    bool isConnectionValid() const;
+
+
 private slots:
     void simulation_start();
     void simulation_stop();
@@ -75,6 +79,9 @@ private slots:
     void on_Network_clicked();
 
     void on_chackNetwork_clicked();
+
+
+
 
 private:
     void init();

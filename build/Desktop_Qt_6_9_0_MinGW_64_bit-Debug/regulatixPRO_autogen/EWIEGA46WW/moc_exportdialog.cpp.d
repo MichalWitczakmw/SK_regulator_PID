@@ -1,5 +1,5 @@
-C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/EWIEGA46WW/moc_exportdialog.cpp: C:/Users/szkol/Documents/GitHub/SK_regulator_PID/exportdialog.h \
-  C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/moc_predefs.h \
+C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/EWIEGA46WW/moc_exportdialog.cpp: C:/SK_regulator_PID/exportdialog.h \
+  C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/moc_predefs.h \
   C:/Qt/6.9.0/mingw_64/include/QtCore/q17memory.h \
   C:/Qt/6.9.0/mingw_64/include/QtCore/q20functional.h \
   C:/Qt/6.9.0/mingw_64/include/QtCore/q20iterator.h \

@@ -46,7 +46,9 @@ template <> constexpr inline auto MyTCPClient::qt_create_metaobjectdata<qt_meta_
         "disconnected",
         "messageRecived",
         "msg",
+        "serverDisconnected",
         "slot_connected",
+        "slot_socket_disconnected",
         "slot_readyRead"
     };
 
@@ -61,10 +63,14 @@ template <> constexpr inline auto MyTCPClient::qt_create_metaobjectdata<qt_meta_
         QtMocHelpers::SignalData<void(QString)>(6, 2, QMC::AccessPublic, QMetaType::Void, {{
             { QMetaType::QString, 7 },
         }}),
+        // Signal 'serverDisconnected'
+        QtMocHelpers::SignalData<void()>(8, 2, QMC::AccessPublic, QMetaType::Void),
         // Slot 'slot_connected'
-        QtMocHelpers::SlotData<void()>(8, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'slot_readyRead'
         QtMocHelpers::SlotData<void()>(9, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'slot_socket_disconnected'
+        QtMocHelpers::SlotData<void()>(10, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'slot_readyRead'
+        QtMocHelpers::SlotData<void()>(11, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -91,8 +97,10 @@ void MyTCPClient::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
         case 0: _t->connected((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[2]))); break;
         case 1: _t->disconnected(); break;
         case 2: _t->messageRecived((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
-        case 3: _t->slot_connected(); break;
-        case 4: _t->slot_readyRead(); break;
+        case 3: _t->serverDisconnected(); break;
+        case 4: _t->slot_connected(); break;
+        case 5: _t->slot_socket_disconnected(); break;
+        case 6: _t->slot_readyRead(); break;
         default: ;
         }
     }
@@ -102,6 +110,8 @@ void MyTCPClient::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
         if (QtMocHelpers::indexOfMethod<void (MyTCPClient::*)()>(_a, &MyTCPClient::disconnected, 1))
             return;
         if (QtMocHelpers::indexOfMethod<void (MyTCPClient::*)(QString )>(_a, &MyTCPClient::messageRecived, 2))
+            return;
+        if (QtMocHelpers::indexOfMethod<void (MyTCPClient::*)()>(_a, &MyTCPClient::serverDisconnected, 3))
             return;
     }
 }
@@ -125,14 +135,14 @@ int MyTCPClient::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 5)
+        if (_id < 7)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 5;
+        _id -= 7;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 5)
+        if (_id < 7)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 5;
+        _id -= 7;
     }
     return _id;
 }
@@ -153,5 +163,11 @@ void MyTCPClient::disconnected()
 void MyTCPClient::messageRecived(QString _t1)
 {
     QMetaObject::activate<void>(this, &staticMetaObject, 2, nullptr, _t1);
+}
+
+// SIGNAL 3
+void MyTCPClient::serverDisconnected()
+{
+    QMetaObject::activate(this, &staticMetaObject, 3, nullptr);
 }
 QT_WARNING_POP

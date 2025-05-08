@@ -14,11 +14,15 @@ public:
     void stopListening();
     int getNumClients();
     void sendMsg(QString msg, int numCli);
+    bool isClientConnected(int clientIndex) const;
+    void disconnectClients(); // Funkcja do rozłączania klientów
 
 signals:
     void newClientConnected(QString adr);
-    void clientDisconnetced(int num);
+    void clientDisconnected(); // Sygnał rozłączenia klienta
     void newMsgFrom(QString, int num);
+    void clientConnected(QString clientAddress, quint16 clientPort); // Sygnał o nowym połączeniu klienta
+    void clientConfirmedConnection(); // Sygnał o potwierdzeniu połączenia przez klienta
 
 private slots:
     void slot_new_client();
@@ -29,7 +33,7 @@ private:
     bool getClinetID();
 
     bool m_isListening = false;
-    int m_port = 12345;
+    int m_port = 8080;
     QTcpServer m_server;
     QVector<QTcpSocket*> m_clients;
 };

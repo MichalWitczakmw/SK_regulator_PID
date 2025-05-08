@@ -5,6 +5,7 @@
 #include "./ui_mainwindow.h"
 #include "exportdialog.h"
 #include "networkdialog.h"
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -31,6 +32,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Podłącz sygnał kliknięcia przycisku do naszego slotu
     connect(ui->Network, &QPushButton::clicked, this, &MainWindow::on_Network_clicked);
+
+
+
 }
 
 void MainWindow::action_simulation_open()
@@ -445,50 +449,39 @@ void MainWindow::on_inside_sum_radio_clicked()
 //     isServerW = isServer;
 // }
 
-void MainWindow::handleNetworkInstance(QObject *networkInstance)
-{
-    // Sprawdź, czy wskaźnik to serwer lub klient
-    if (auto *serverInstance = qobject_cast<MyTCPServer *>(networkInstance)) {
-        server = serverInstance;
-
-        // Sprawdź, czy serwer działa
-        if (server->isListening()) {
-            ui->labelConnected->setText("Server is running!");
-        } else {
-            ui->labelConnected->setText("Server failed!");
-        }
-    } else if (auto *clientInstance = qobject_cast<MyTCPClient *>(networkInstance)) {
-        client = clientInstance;
-
-        // Sprawdź, czy klient jest połączony
-        if (client->isConnected()) {
-            ui->labelConnected->setText("Client is connected!");
-        } else {
-            ui->labelConnected->setText("Client not connect!");
-        }
-    }
-}
-
+// Wywołanie NetworkDialog
 void MainWindow::on_Network_clicked()
 {
-
-    // NetworkDialog  networkWindow(this);
-
-    // connect(&networkWindow, &NetworkDialog::sendData, this, &MainWindow::handleNetworkInstance);
-
-    // if(!networkWindow)
-    //     networkWindow.exec();
-    if(!networkdialog)
-    {
-        networkdialog = new NetworkDialog(this);
-        connect(networkdialog, &NetworkDialog::sendData, this, &MainWindow::handleNetworkInstance);
+    if (ui->Network->text() == "Network") {
+        // Otwórz NetworkDialog w celu ustanowienia połączenia
+        if (!networkdialog) {
+            networkdialog = new NetworkDialog(this);
+            connect(networkdialog, &NetworkDialog::sendData, this, &MainWindow::handleNetworkInstance);
+        }
         networkdialog->exec();
+    } else if (ui->Network->text() == "Disconnect") {
+        // Potwierdzenie rozłączenia
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            this, "Disconnect", "Are you sure you want to disconnect?",
+            QMessageBox::Yes | QMessageBox::No);
+
+        if (reply == QMessageBox::Yes) {
+            if (isServerW && server) {
+                // Rozłącz serwer (powiadom klientów)
+                server->disconnectClients();
+                delete server;
+                server = nullptr;
+            } else if (!isServerW && client) {
+                // Powiadom serwer o rozłączeniu
+                client->notifyDisconnection();
+                delete client;
+                client = nullptr;
+            }
+
+            ui->Network->setText("Network"); // Zmień tekst przycisku
+            ui->labelConnected->setText("Disconnected");
+        }
     }
-    else
-        networkdialog->close();
-
-
-
 }
 
 
@@ -518,4 +511,76 @@ void MainWindow::on_chackNetwork_clicked()
     else
         ui->labelChacConnected->setText("Offline");
 }
+
+// Funkcja do zarządzania kontrolkami w zależności od trybu (Server/Client)
+void MainWindow::updateControlsBasedOnRole(bool isServer)
+{
+    // Jeśli użytkownik jest serwerem (PID), dezaktywujemy kontrolki ARX
+    ui->arx_noise_input->setEnabled(!isServer);
+    ui->arx_noisetype_input->setEnabled(!isServer);
+    ui->arx_delay_input->setEnabled(!isServer);
+    ui->arx_a_input->setEnabled(!isServer);
+    ui->arx_b_input->setEnabled(!isServer);
+
+    // Jeśli użytkownik jest klientem (ARX), dezaktywujemy kontrolki PID i generatora
+    ui->pid_kp_input->setEnabled(isServer);
+    ui->pid_ti_input->setEnabled(isServer);
+    ui->pid_td_input->setEnabled(isServer);
+    ui->generator_amplitude_input->setEnabled(isServer);
+    ui->generator_frequency_input->setEnabled(isServer);
+    ui->generator_generatortype_input->setEnabled(isServer);
+    ui->generator_infill_input->setEnabled(isServer);
+}
+
+// Obsługa sygnału z `NetworkDialog`
+void MainWindow::handleNetworkInstance(QObject *networkInstance)
+{
+    if (auto *serverInstance = qobject_cast<MyTCPServer *>(networkInstance)) {
+        server = serverInstance;
+
+        // Obsługa nowego klienta
+        connect(server, &MyTCPServer::clientConnected, this, [this](QString clientAddress, quint16 clientPort) {
+            ui->labelConnected->setText("Client Connected");
+            ui->Network->setText("Disconnect"); // Zmień funkcję przycisku na "Disconnect"
+
+            // Wyświetlenie komunikatu w osobnym oknie
+            QMessageBox::information(this, "New Connection",
+                                     QString("New client (ARX) from: ::ffff:%1").arg(clientAddress));
+        });
+
+        // Dodaj komunikat, gdy klient się rozłączy
+        connect(server, &MyTCPServer::clientDisconnected, this, [this]() {
+            QMessageBox::information(this, "Disconnected", "Client has disconnected.");
+            ui->labelConnected->setText("No clients connected");
+        });
+        // Ustawienie statusu serwera
+        ui->Network->setText("Disconnect");
+        ui->labelConnected->setText("Waiting for client...");
+    } else if (auto *clientInstance = qobject_cast<MyTCPClient *>(networkInstance)) {
+        client = clientInstance;
+
+        // Obsługa połączenia z serwerem
+        connect(client, &MyTCPClient::connected, this, [this](QString adr, int port) {
+            ui->Network->setText("Disconnect");
+            ui->labelConnected->setText("Connected");
+            if (networkdialog) {
+                networkdialog->close();
+            }
+            QMessageBox::information(this, "Connected",
+                                     QString("Connected to server (PID) at: ::ffff:%1:%2")
+                                         .arg(adr)
+                                         .arg(port));
+        });
+
+        // Dodaj komunikat, gdy serwer się rozłączy
+        connect(client, &MyTCPClient::serverDisconnected, this, [this]() {
+            QMessageBox::warning(this, "Connection Lost", "Server is not available.");
+            ui->labelConnected->setText("Disconnected");
+            ui->Network->setText("Network");
+        });
+
+        ui->labelConnected->setText("Connecting...");
+    }
+}
+
 
