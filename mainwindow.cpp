@@ -559,6 +559,9 @@ void MainWindow::handleNetworkInstance(QObject *networkInstance)
         // Ustawienie statusu serwera
         ui->Network->setText("Disconnect");
         ui->labelConnected->setText("Waiting for client...");
+
+        updateControlsBasedOnRole(true);
+
     } else if (auto *clientInstance = qobject_cast<MyTCPClient *>(networkInstance)) {
         client = clientInstance;
 
@@ -585,6 +588,9 @@ void MainWindow::handleNetworkInstance(QObject *networkInstance)
         });
 
         ui->labelConnected->setText("Connecting...");
+
+        updateControlsBasedOnRole(false);
+
     }
 }
 
