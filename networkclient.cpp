@@ -54,13 +54,22 @@ void MyTCPClient::slot_socket_disconnected()
 
 void MyTCPClient::slot_readyRead()
 {
+    QByteArray message = m_socket.readAll();
+    if (message == "CMD_START") {
+        Simulation::get_instance().start();
+    } else if (message == "CMD_STOP") {
+        Simulation::get_instance().stop();
+    } else if (message == "CMD_RESET") {
+        Simulation::get_instance().reset();
+    }
+
     while (m_socket.bytesAvailable() >= static_cast<qint64>(sizeof(SimulationFrame))) {
         SimulationFrame frame;
         m_socket.read(reinterpret_cast<char*>(&frame), sizeof(SimulationFrame));
         Simulation::get_instance().receiveFrameFromServer(frame);
     }
 
-    QByteArray message = m_socket.readAll();
+    //QByteArray message = m_socket.readAll();
     if (message == "Server disconnected") {
         emit serverDisconnected();
         return;

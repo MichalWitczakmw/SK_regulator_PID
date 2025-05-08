@@ -516,14 +516,14 @@ void MainWindow::on_chackNetwork_clicked()
 // Funkcja do zarządzania kontrolkami w zależności od trybu (Server/Client)
 void MainWindow::updateControlsBasedOnRole(bool isServer)
 {
-    // Jeśli użytkownik jest serwerem (PID), dezaktywujemy kontrolki ARX
-    ui->arx_noise_input->setEnabled(!isServer);
-    ui->arx_noisetype_input->setEnabled(!isServer);
-    ui->arx_delay_input->setEnabled(!isServer);
-    ui->arx_a_input->setEnabled(!isServer);
-    ui->arx_b_input->setEnabled(!isServer);
+    // Blokuj/odblokuj przyciski sterowania symulacją
+    ui->simulation_start_button->setEnabled(isServer);
+    ui->simulation_stop_button->setEnabled(isServer);
+    ui->simulation_reset_button->setEnabled(isServer);
+    ui->simulation_interval_input->setEnabled(isServer);
+    ui->simulation_duration_input->setEnabled(isServer);
 
-    // Jeśli użytkownik jest klientem (ARX), dezaktywujemy kontrolki PID i generatora
+    // PID i Generator tylko dla serwera
     ui->pid_kp_input->setEnabled(isServer);
     ui->pid_ti_input->setEnabled(isServer);
     ui->pid_td_input->setEnabled(isServer);
@@ -531,6 +531,13 @@ void MainWindow::updateControlsBasedOnRole(bool isServer)
     ui->generator_frequency_input->setEnabled(isServer);
     ui->generator_generatortype_input->setEnabled(isServer);
     ui->generator_infill_input->setEnabled(isServer);
+
+    // ARX tylko dla klienta
+    ui->arx_noise_input->setEnabled(!isServer);
+    ui->arx_noisetype_input->setEnabled(!isServer);
+    ui->arx_delay_input->setEnabled(!isServer);
+    ui->arx_a_input->setEnabled(!isServer);
+    ui->arx_b_input->setEnabled(!isServer);
 }
 
 // Obsługa sygnału z `NetworkDialog`
@@ -539,6 +546,11 @@ void MainWindow::handleNetworkInstance(QObject *networkInstance)
     if (auto *serverInstance = qobject_cast<MyTCPServer *>(networkInstance)) {
         server = serverInstance;
         Simulation::get_instance().set_mode(SimulationMode::Server);
+
+        // Sygnały start/stop/reset do klienta
+        connect(&simulation, &Simulation::simulation_start, server, &MyTCPServer::broadcastStart);
+        connect(&simulation, &Simulation::simulation_stop, server, &MyTCPServer::broadcastStop);
+        connect(&simulation, &Simulation::reset_chart, server, &MyTCPServer::broadcastReset);
 
         // PODPIĘCIE: SYGNAŁ → SLOT
         connect(&simulation, &Simulation::frameReadyToSendToClient,

@@ -27,6 +27,9 @@ signals:
 
 public slots:
     void sendFrame(const SimulationFrame &frame); // slot do wysyłania ramek do klienta
+    void broadcastStart();
+    void broadcastStop();
+    void broadcastReset();
 private slots:
     void slot_new_client();
     void slot_client_disconnetcted();

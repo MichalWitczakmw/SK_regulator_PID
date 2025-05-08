@@ -8,6 +8,19 @@ MyTCPServer::MyTCPServer(QObject *parent)
 
 }
 
+void MyTCPServer::broadcastStart() {
+    for (QTcpSocket* client : m_clients)
+        if (client->isOpen()) client->write("CMD_START");
+}
+void MyTCPServer::broadcastStop() {
+    for (QTcpSocket* client : m_clients)
+        if (client->isOpen()) client->write("CMD_STOP");
+}
+void MyTCPServer::broadcastReset() {
+    for (QTcpSocket* client : m_clients)
+        if (client->isOpen()) client->write("CMD_RESET");
+}
+
 void MyTCPServer::sendFrame(const SimulationFrame &frame)
 {
     QByteArray data(reinterpret_cast<const char*>(&frame), sizeof(SimulationFrame));

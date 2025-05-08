@@ -136,29 +136,25 @@ void Simulation::simulate()
         break;
     }
     case SimulationMode::Client:
-    {
         if (pendingFrameFromServer)
         {
             SimulationFrame& frame = *pendingFrameFromServer;
 
-            // 1. Licz ARX i Noise na podstawie PID output z ramki
+            // Licz tylko ARX i Noise
             float arx_output = this->arx->run(frame.pid_output);
             frame.arx_output = arx_output;
             frame.noise = this->arx->noise_part;
 
-            // 2. Dodaj do historii ramek (pełna ramka)
+            // Zachowaj ramkę
             this->frames.push_back(frame);
 
-            // 3. Emituj WSZYSTKIE serie — dane z ramki od serwera + ARX/Noise liczone lokalnie
+            // Emituj serie do wykresu ze wszystkich pól ramki
             emit this->add_series("I", frame.i, ChartPosition::top);
             emit this->add_series("D", frame.d, ChartPosition::top);
             emit this->add_series("P", frame.p, ChartPosition::top);
             emit this->add_series("PID", frame.pid_output, ChartPosition::top);
-
             emit this->add_series("Generator", frame.geneartor_output, ChartPosition::bottom);
-
             emit this->add_series("Error", frame.error, ChartPosition::middle);
-
             emit this->add_series("ARX", arx_output, ChartPosition::bottom);
             emit this->add_series("Noise", this->arx->noise_part, ChartPosition::middle);
 
@@ -169,7 +165,7 @@ void Simulation::simulate()
         }
         break;
     }
-    }
+
 }
 
 void Simulation::sendFrameToClient(const SimulationFrame &frame)
