@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include "simulation.h"
 
 class MyTCPServer : public QObject
 {
@@ -24,6 +25,8 @@ signals:
     void clientConnected(QString clientAddress, quint16 clientPort); // Sygnał o nowym połączeniu klienta
     void clientConfirmedConnection(); // Sygnał o potwierdzeniu połączenia przez klienta
 
+public slots:
+    void sendFrame(const SimulationFrame &frame); // slot do wysyłania ramek do klienta
 private slots:
     void slot_new_client();
     void slot_client_disconnetcted();

@@ -80,7 +80,7 @@ private slots:
 
     void on_chackNetwork_clicked();
 
-
+    void on_network_button_clicked();
 
 
 private:
@@ -94,5 +94,7 @@ private:
     NetworkDialog * networkdialog = nullptr;
     bool isServerW = 0;
     Ui::MainWindow *ui;
+
+    SimulationMode selected_network_mode = SimulationMode::Offline;
 };
 #endif // MAINWINDOW_H

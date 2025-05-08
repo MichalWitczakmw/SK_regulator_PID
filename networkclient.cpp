@@ -12,6 +12,12 @@ MyTCPClient::MyTCPClient(QObject *parent)
 
 }
 
+void MyTCPClient::sendFrame(const SimulationFrame &frame)
+{
+    QByteArray data(reinterpret_cast<const char*>(&frame), sizeof(SimulationFrame));
+    m_socket.write(data);
+}
+
 void MyTCPClient::connectTo(QString address, int port)
 {
     m_ipAddress = address;
@@ -48,12 +54,19 @@ void MyTCPClient::slot_socket_disconnected()
 
 void MyTCPClient::slot_readyRead()
 {
-    auto message = m_socket.readAll();
+    while (m_socket.bytesAvailable() >= static_cast<qint64>(sizeof(SimulationFrame))) {
+        SimulationFrame frame;
+        m_socket.read(reinterpret_cast<char*>(&frame), sizeof(SimulationFrame));
+        Simulation::get_instance().receiveFrameFromServer(frame);
+    }
+
+    QByteArray message = m_socket.readAll();
     if (message == "Server disconnected") {
         emit serverDisconnected();
         return;
     }
-    emit messageRecived(message);
+    if (!message.isEmpty())
+        emit messageRecived(message);
 }
 
 // Poprawiona funkcja sprawdzająca faktyczne połączenie

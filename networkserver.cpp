@@ -8,6 +8,15 @@ MyTCPServer::MyTCPServer(QObject *parent)
 
 }
 
+void MyTCPServer::sendFrame(const SimulationFrame &frame)
+{
+    QByteArray data(reinterpret_cast<const char*>(&frame), sizeof(SimulationFrame));
+    for (QTcpSocket* client : m_clients) {
+        if (client && client->state() == QAbstractSocket::ConnectedState)
+            client->write(data);
+    }
+}
+
 bool MyTCPServer::startListening(int port)
 {
     m_port = port;
@@ -62,15 +71,22 @@ void MyTCPServer::slot_newMsg()
     QTcpSocket *client = qobject_cast<QTcpSocket *>(sender());
     if (!client) return;
 
-    QByteArray data = client->readAll();
-    QString message = QString::fromUtf8(data);
+    // Odbiór ramek SimulationFrame
+    while (client->bytesAvailable() >= static_cast<qint64>(sizeof(SimulationFrame))) {
+        SimulationFrame frame;
+        client->read(reinterpret_cast<char*>(&frame), sizeof(SimulationFrame));
+        Simulation::get_instance().receiveFrameFromClient(frame);
+    }
 
-    if (message == "connected") {
-        // Klient potwierdził połączenie
-        emit clientConfirmedConnection();
-    } else {
-        // Obsługa innych wiadomości
-        qDebug() << "Received message from client:" << message;
+    // Obsługa ewentualnych tekstowych wiadomości (np. handshake)
+    QByteArray remainingData = client->readAll();
+    if (!remainingData.isEmpty()) {
+        QString message = QString::fromUtf8(remainingData);
+        if (message == "connected") {
+            emit clientConfirmedConnection();
+        } else {
+            qDebug() << "Received message from client:" << message;
+        }
     }
 }
 

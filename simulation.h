@@ -8,6 +8,12 @@
 #include "generator.h"
 #include "pid.h"
 
+enum class SimulationMode {
+    Offline,
+    Server,
+    Client
+};
+
 enum class ChartPosition {
     top,
     middle,
@@ -41,6 +47,9 @@ class Simulation : public QObject
     Q_OBJECT
 public:
     static Simulation &get_instance();
+
+    void set_mode(SimulationMode mode);
+    SimulationMode get_mode() const;
 
     void start();
     void stop();
@@ -78,6 +87,12 @@ public:
     std::vector<std::byte> serialize();
     void deserialize(std::vector<std::byte> data);
 
+    // Nowe metody do komunikacji
+    void sendFrameToClient(const SimulationFrame &frame); // serwer -> klient
+    void sendFrameToServer(const SimulationFrame &frame); // klient -> serwer
+    void receiveFrameFromClient(const SimulationFrame &frame);
+    void receiveFrameFromServer(const SimulationFrame &frame);
+
 signals:
     void simulation_start();
     void simulation_stop();
@@ -86,10 +101,18 @@ signals:
     void update_chart();
     void add_series(QString series_name, float y, ChartPosition position);
 
+    // Sygnały do integracji z warstwą sieciową
+    void frameReadyToSendToClient(const SimulationFrame &frame); // serwer -> klient
+    void frameReadyToSendToServer(const SimulationFrame &frame); // klient -> serwer
+
 protected:
     void timerEvent(QTimerEvent *event) override;
 
 private:
+
+    SimulationMode mode{SimulationMode::Offline};
+    std::optional<SimulationFrame> pendingFrameFromServer;
+
     void simulate();
 
     bool is_outside_sum{true};

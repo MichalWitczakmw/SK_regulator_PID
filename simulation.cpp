@@ -46,52 +46,154 @@ void memcopy_s(void *dest, const T &src, size_t size = 1)
 
 void Simulation::simulate()
 {
-    static float error = 0;
-    static float arx_output = 0;
-    static float pid_output = 0;
-    static float generator = 0;
+    switch (mode) {
+    case SimulationMode::Offline:
+    {
+        static float error = 0;
+        static float arx_output = 0;
+        static float pid_output = 0;
+        static float generator = 0;
 
-    const size_t tick = this->get_tick();
-    // const float time = interval / 1000.0f ;
-    this->current_time += interval / 1000.0f;
+        const size_t tick = this->get_tick();
+        // const float time = interval / 1000.0f ;
+        this->current_time += interval / 1000.0f;
 
-    generator = this->generator->run(current_time);
+        generator = this->generator->run(current_time);
 
-    error = generator - arx_output;
+        error = generator - arx_output;
 
-    pid_output = this->pid->run(error);
+        pid_output = this->pid->run(error);
 
-    arx_output = this->arx->run(pid_output);
+        arx_output = this->arx->run(pid_output);
 
-    SimulationFrame frame{
-        .tick = tick,
-        .geneartor_output = generator,
-        .p = this->pid->proportional_part,
-        .i = this->pid->integral_part,
-        .d = this->pid->derivative_part,
-        .pid_output = pid_output,
-        .error = error,
-        .arx_output = arx_output,
-        .noise = this->arx->noise_part,
-    };
+        SimulationFrame frame{
+            .tick = tick,
+            .geneartor_output = generator,
+            .p = this->pid->proportional_part,
+            .i = this->pid->integral_part,
+            .d = this->pid->derivative_part,
+            .pid_output = pid_output,
+            .error = error,
+            .arx_output = arx_output,
+            .noise = this->arx->noise_part,
+        };
 
-    this->frames.push_back(frame);
+        this->frames.push_back(frame);
 
-    emit this->add_series("I", this->pid->integral_part, ChartPosition::top);
-    emit this->add_series("D", this->pid->derivative_part, ChartPosition::top);
-    emit this->add_series("P", this->pid->proportional_part, ChartPosition::top);
-    emit this->add_series("PID", pid_output, ChartPosition::top);
+        emit this->add_series("I", this->pid->integral_part, ChartPosition::top);
+        emit this->add_series("D", this->pid->derivative_part, ChartPosition::top);
+        emit this->add_series("P", this->pid->proportional_part, ChartPosition::top);
+        emit this->add_series("PID", pid_output, ChartPosition::top);
 
-    emit this->add_series("Generator", generator, ChartPosition::bottom);
+        emit this->add_series("Generator", generator, ChartPosition::bottom);
 
-    emit this->add_series("Error", error, ChartPosition::middle);
+        emit this->add_series("Error", error, ChartPosition::middle);
 
-    emit this->add_series("ARX", arx_output, ChartPosition::bottom);
-    emit this->add_series("Noise", this->arx->noise_part, ChartPosition::middle);
+        emit this->add_series("ARX", arx_output, ChartPosition::bottom);
+        emit this->add_series("Noise", this->arx->noise_part, ChartPosition::middle);
 
-    emit this->update_chart();
+        emit this->update_chart();
 
-    this->tick++;
+        this->tick++;
+        break;
+    }
+    case SimulationMode::Server:
+    {
+        // Serwer liczy swoją część i wysyła "bramkę" do klienta
+        static float error = 0;
+        static float generator = 0;
+        static float pid_output = 0;
+
+        const size_t tick = this->get_tick();
+        this->current_time += interval / 1000.0f;
+
+        generator = this->generator->run(current_time);
+        error = generator - 0; // ARX output jeszcze nieznany na tym etapie na serwerze
+
+        pid_output = this->pid->run(error);
+
+        SimulationFrame frame{
+            .tick = tick,
+            .geneartor_output = generator,
+            .p = this->pid->proportional_part,
+            .i = this->pid->integral_part,
+            .d = this->pid->derivative_part,
+            .pid_output = pid_output,
+            .error = error,
+            .arx_output = 0.0f, // Uzupełni klient
+            .noise = 0.0f,      // Uzupełni klient
+        };
+
+        // Dodajemy do historii, nawet jeśli arx_output/noise będą uzupełnione po powrocie bramki
+        this->frames.push_back(frame);
+
+        // Teraz wysyłka bramki do klienta przez sygnał
+        sendFrameToClient(frame);
+
+        // Dalsza logika (np. oczekiwanie na uzupełnioną bramkę od klienta) po stronie slotu odbiorczego
+
+        this->tick++;
+        break;
+    }
+    case SimulationMode::Client:
+    {
+        // Klient odbiera bramkę od serwera, liczy ARX/noise i odsyła zaktualizowaną bramkę
+        // Tu zakładamy, że bramka została już odebrana i jest podana do tej metody (np. przez pole/argument)
+
+        if (pendingFrameFromServer) // pendingFrameFromServer to wskaźnik lub pole na aktualną bramkę do przetworzenia
+        {
+            SimulationFrame& frame = *pendingFrameFromServer;
+
+            // Na podstawie pid_output liczymy ARX
+            float arx_output = this->arx->run(frame.pid_output);
+
+            frame.arx_output = arx_output;
+            frame.noise = this->arx->noise_part;
+
+            this->frames.push_back(frame);
+
+            emit this->add_series("ARX", arx_output, ChartPosition::bottom);
+            emit this->add_series("Noise", this->arx->noise_part, ChartPosition::middle);
+            emit this->add_series("Generator", frame.geneartor_output, ChartPosition::bottom);
+            emit this->update_chart();
+
+            // Odesłanie zaktualizowanej bramki do serwera
+            sendFrameToServer(frame);
+
+            pendingFrameFromServer.reset(); // lub nullptr
+        }
+        break;
+    }
+    }
+}
+
+void Simulation::sendFrameToClient(const SimulationFrame &frame)
+{
+    // Tutaj wywołujesz sygnał, do którego podłączysz klasę obsługującą wysyłanie przez sieć
+    emit frameReadyToSendToClient(frame);
+}
+
+void Simulation::sendFrameToServer(const SimulationFrame &frame)
+{
+    emit frameReadyToSendToServer(frame);
+}
+
+void Simulation::receiveFrameFromServer(const SimulationFrame &frame)
+{
+    // Otrzymujemy bramkę od serwera (po stronie klienta)
+    pendingFrameFromServer = frame;
+}
+
+void Simulation::receiveFrameFromClient(const SimulationFrame &frame)
+{
+    // Otrzymujemy bramkę od klienta (po stronie serwera) — uzupełnij ostatnią ramkę w historii
+    if (!frames.empty()) {
+        // Zakładamy, że ostatnia ramka to ta, którą wysłaliśmy do klienta
+        SimulationFrame &last = frames.back();
+        last.arx_output = frame.arx_output;
+        last.noise = frame.noise;
+        // Możesz tu dodać kod do aktualizacji wykresów po stronie serwera, jeśli chcesz
+    }
 }
 
 void Simulation::set_ticks_per_second(float ticks_per_second)
@@ -278,4 +380,18 @@ void Simulation::set_outside_sum(bool is_outside_sum)
 bool Simulation::get_outside_sum() const
 {
     return this->is_outside_sum;
+}
+
+// wpisz tutaj
+void Simulation::set_mode(SimulationMode mode)
+{
+    if (this->mode != mode) {
+        this->mode = mode;
+        // (opcjonalnie: emituj sygnał o zmianie trybu, jeśli chcesz reagować w GUI)
+    }
+}
+
+SimulationMode Simulation::get_mode() const
+{
+    return this->mode;
 }

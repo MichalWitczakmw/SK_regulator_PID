@@ -2,6 +2,7 @@
 #define NETWORKCLIENT_H
 #include <QObject>
 #include <QTcpSocket>
+#include "simulation.h"
 
 class MyTCPClient : public QObject
 {
@@ -22,6 +23,8 @@ signals:
     void messageRecived(QString msg);
     void serverDisconnected(); // Sygnał rozłączenia serwera
 
+public slots:
+    void sendFrame(const SimulationFrame &frame);
 private slots:
     void slot_connected();
     void slot_socket_disconnected();
