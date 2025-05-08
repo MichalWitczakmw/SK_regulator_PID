@@ -538,6 +538,11 @@ void MainWindow::updateControlsBasedOnRole(bool isServer)
     ui->arx_delay_input->setEnabled(!isServer);
     ui->arx_a_input->setEnabled(!isServer);
     ui->arx_b_input->setEnabled(!isServer);
+
+    // Ukryj wykresy po stronie klienta
+    ui->widget->setEnabled(isServer);
+    ui->widget_2->setEnabled(isServer);
+    ui->widget_3->setEnabled(isServer);
 }
 
 // Obsługa sygnału z `NetworkDialog`
@@ -551,6 +556,7 @@ void MainWindow::handleNetworkInstance(QObject *networkInstance)
         connect(&simulation, &Simulation::simulation_start, server, &MyTCPServer::broadcastStart);
         connect(&simulation, &Simulation::simulation_stop, server, &MyTCPServer::broadcastStop);
         connect(&simulation, &Simulation::reset_chart, server, &MyTCPServer::broadcastReset);
+
 
         // PODPIĘCIE: SYGNAŁ → SLOT
         connect(&simulation, &Simulation::frameReadyToSendToClient,

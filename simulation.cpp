@@ -128,6 +128,17 @@ void Simulation::simulate()
 
             this->frames.push_back(frame);
 
+            // <-- Wykresy tylko na serwerze -->
+            emit this->add_series("I", frame.i, ChartPosition::top);
+            emit this->add_series("D", frame.d, ChartPosition::top);
+            emit this->add_series("P", frame.p, ChartPosition::top);
+            emit this->add_series("PID", frame.pid_output, ChartPosition::top);
+            emit this->add_series("Generator", frame.geneartor_output, ChartPosition::bottom);
+            emit this->add_series("Error", frame.error, ChartPosition::middle);
+            emit this->add_series("ARX", frame.arx_output, ChartPosition::bottom); // na razie 0
+            emit this->add_series("Noise", frame.noise, ChartPosition::middle);    // na razie 0
+            emit this->update_chart();
+
             sendFrameToClient(frame);
 
             waitingForClient = true; // Czekaj na odpowiedź od klienta!
@@ -149,24 +160,14 @@ void Simulation::simulate()
             // Zachowaj ramkę
             this->frames.push_back(frame);
 
-            // Emituj serie do wykresu ze wszystkich pól ramki
-            emit this->add_series("I", frame.i, ChartPosition::top);
-            emit this->add_series("D", frame.d, ChartPosition::top);
-            emit this->add_series("P", frame.p, ChartPosition::top);
-            emit this->add_series("PID", frame.pid_output, ChartPosition::top);
-            emit this->add_series("Generator", frame.geneartor_output, ChartPosition::bottom);
-            emit this->add_series("Error", frame.error, ChartPosition::middle);
-            emit this->add_series("ARX", arx_output, ChartPosition::bottom);
-            emit this->add_series("Noise", this->arx->noise_part, ChartPosition::middle);
-
-            emit this->update_chart();
+            // UWAGA: Klient NIE emituje sygnałów do wykresów!
+            // (możesz te linie usunąć lub zakomentować)
 
             sendFrameToServer(frame);
             pendingFrameFromServer.reset();
         }
-        // Jeśli nie ma pendingFrameFromServer – czekaj na receiveFrameFromServer()
-               break;
-    }
+        // Jeśli nie ma pendingFrameFromServer – czekaj na receiveFrameFromServer()
+        break;
     }
 }
 
