@@ -58,35 +58,34 @@ void MyTCPClient::slot_readyRead()
     QByteArray message = m_socket.readAll();
     qDebug() << "Message received from server:" << message;
 
-    // Handle commands from server
-    if (message == "CMD_START") {
-        qDebug() << "Command received: CMD_START";
-        Simulation::get_instance().start();
-    } else if (message == "CMD_STOP") {
-        qDebug() << "Command received: CMD_STOP";
-        Simulation::get_instance().stop();
-    } else if (message == "CMD_RESET") {
-        qDebug() << "Command received: CMD_RESET";
-        Simulation::get_instance().reset();
+    // Handle concatenated commands by splitting the message
+    QStringList commands = QString(message).split("CMD_", Qt::SkipEmptyParts);
+    for (const QString &cmd : commands) {
+        if (cmd == "START") {
+            qDebug() << "Command received: CMD_START";
+            Simulation::get_instance().start();
+        } else if (cmd == "STOP") {
+            qDebug() << "Command received: CMD_STOP";
+            Simulation::get_instance().stop();
+        } else if (cmd == "RESET") {
+            qDebug() << "Command received: CMD_RESET";
+            Simulation::get_instance().reset();
+        }
     }
 
-    // Handle frames from server
+    // Handle simulation frames from the server
     while (m_socket.bytesAvailable() >= static_cast<qint64>(sizeof(SimulationFrame))) {
         SimulationFrame frame;
         m_socket.read(reinterpret_cast<char*>(&frame), sizeof(SimulationFrame));
-        qDebug() << "Simulation frame received:" << frame.tick;
+        qDebug() << "Simulation frame received - Tick:" << frame.tick;
         Simulation::get_instance().receiveFrameFromServer(frame);
     }
 
-    // Handle server disconnection message
+    // Handle server disconnection messages
     if (message == "Server disconnected") {
         qDebug() << "Server disconnected";
         emit serverDisconnected();
         return;
-    }
-
-    if (!message.isEmpty()) {
-        emit messageRecived(message);
     }
 }
 
