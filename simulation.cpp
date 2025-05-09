@@ -104,6 +104,11 @@ void Simulation::simulate()
         static float generator = 0;
         static float pid_output = 0;
 
+        // Increment the timer if waiting for a client
+        if (waitingForClient) {
+            time_since_last_response += interval / 1000.0f; // Increment time in seconds
+        }
+
         // Dodaj zmienną członkowską klasy: bool waitingForClient = false;
         if (!waitingForClient) {
             const size_t tick = this->get_tick();
@@ -142,6 +147,7 @@ void Simulation::simulate()
             sendFrameToClient(frame);
 
             waitingForClient = true; // Czekaj na odpowiedź od klienta!
+            time_since_last_response = 0.0f;
         }
         // Jeśli waitingForClient == true, nie rób nic – czekaj na receiveFrameFromClient()
         break;
@@ -199,6 +205,7 @@ void Simulation::receiveFrameFromClient(const SimulationFrame &frame)
         // Możesz tu dodać kod do aktualizacji wykresów po stronie serwera, jeśli chcesz
     }
     waitingForClient = false;
+    time_since_last_response = 0.0f;
 }
 
 void Simulation::set_ticks_per_second(float ticks_per_second)

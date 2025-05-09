@@ -93,6 +93,9 @@ public:
     void receiveFrameFromClient(const SimulationFrame &frame);
     void receiveFrameFromServer(const SimulationFrame &frame);
 
+    void set_timeout_threshold(float timeout) { timeout_threshold = timeout; }
+    float get_timeout_threshold() const { return timeout_threshold; }
+
 signals:
     void simulation_start();
     void simulation_stop();
@@ -126,6 +129,8 @@ private:
     ~Simulation();
 
     bool waitingForClient = false;
+    float time_since_last_response = 0.0f; // Time elapsed since the last response
+    float timeout_threshold = 5.0f;       // Timeout in seconds
 
 signals:
 };
