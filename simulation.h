@@ -123,7 +123,7 @@ private:
     size_t tick{0};
     float current_time{0};
     size_t timer_id{0};
-    int interval{100};
+    int interval{250};
 
     explicit Simulation(QObject *parent = nullptr);
     ~Simulation();

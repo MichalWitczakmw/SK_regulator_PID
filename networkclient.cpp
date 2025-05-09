@@ -16,6 +16,7 @@ void MyTCPClient::sendFrame(const SimulationFrame &frame)
 {
     QByteArray data(reinterpret_cast<const char*>(&frame), sizeof(SimulationFrame));
     m_socket.write(data);
+    qDebug() << "Frame sent to server:" << frame.tick;
 }
 
 void MyTCPClient::connectTo(QString address, int port)
@@ -55,27 +56,38 @@ void MyTCPClient::slot_socket_disconnected()
 void MyTCPClient::slot_readyRead()
 {
     QByteArray message = m_socket.readAll();
+    qDebug() << "Message received from server:" << message;
+
+    // Handle commands from server
     if (message == "CMD_START") {
+        qDebug() << "Command received: CMD_START";
         Simulation::get_instance().start();
     } else if (message == "CMD_STOP") {
+        qDebug() << "Command received: CMD_STOP";
         Simulation::get_instance().stop();
     } else if (message == "CMD_RESET") {
+        qDebug() << "Command received: CMD_RESET";
         Simulation::get_instance().reset();
     }
 
+    // Handle frames from server
     while (m_socket.bytesAvailable() >= static_cast<qint64>(sizeof(SimulationFrame))) {
         SimulationFrame frame;
         m_socket.read(reinterpret_cast<char*>(&frame), sizeof(SimulationFrame));
+        qDebug() << "Simulation frame received:" << frame.tick;
         Simulation::get_instance().receiveFrameFromServer(frame);
     }
 
-    //QByteArray message = m_socket.readAll();
+    // Handle server disconnection message
     if (message == "Server disconnected") {
+        qDebug() << "Server disconnected";
         emit serverDisconnected();
         return;
     }
-    if (!message.isEmpty())
+
+    if (!message.isEmpty()) {
         emit messageRecived(message);
+    }
 }
 
 // Poprawiona funkcja sprawdzająca faktyczne połączenie
