@@ -110,7 +110,7 @@ void Simulation::simulate()
         }
 
         // Dodaj zmienną członkowską klasy: bool waitingForClient = false;
-        if (!waitingForClient) {
+        if (!waitingForClient || (time_since_last_response >= timeout_threshold)) {
             const size_t tick = this->get_tick();
             this->current_time += interval / 1000.0f;
 
@@ -163,6 +163,17 @@ void Simulation::simulate()
             frame.arx_output = arx_output;
             frame.noise = this->arx->noise_part;
 
+            // <-- Wykresy tylko na serwerze -->
+            emit this->add_series("I", frame.i, ChartPosition::top);
+            emit this->add_series("D", frame.d, ChartPosition::top);
+            emit this->add_series("P", frame.p, ChartPosition::top);
+            emit this->add_series("PID", frame.pid_output, ChartPosition::top);
+            emit this->add_series("Generator", frame.geneartor_output, ChartPosition::bottom);
+            emit this->add_series("Error", frame.error, ChartPosition::middle);
+            emit this->add_series("ARX", frame.arx_output, ChartPosition::bottom); // na razie 0
+            emit this->add_series("Noise", frame.noise, ChartPosition::middle);    // na razie 0
+            emit this->update_chart();
+
             // Zachowaj ramkę
             this->frames.push_back(frame);
 
@@ -205,7 +216,13 @@ void Simulation::receiveFrameFromClient(const SimulationFrame &frame)
         // Możesz tu dodać kod do aktualizacji wykresów po stronie serwera, jeśli chcesz
     }
     waitingForClient = false;
-    time_since_last_response = 0.0f;
+
+}
+
+void Simulation::update_timeout_threshold()
+{
+    // Convert interval (ms) to seconds and calculate 80% of it
+    timeout_threshold = (interval / 1000.0f) * 0.8f;
 }
 
 void Simulation::set_ticks_per_second(float ticks_per_second)
@@ -259,6 +276,7 @@ void Simulation::set_duration(float duration)
 void Simulation::set_interval(int interval)
 {
     this->interval = interval;
+    update_timeout_threshold(); // Recalculate timeout threshold
 }
 
 int Simulation::get_interval() const

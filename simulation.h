@@ -131,6 +131,7 @@ private:
     bool waitingForClient = false;
     float time_since_last_response = 0.0f; // Time elapsed since the last response
     float timeout_threshold = 5.0f;       // Timeout in seconds
+    void update_timeout_threshold();      // Method to update timeout threshold
 
 signals:
 };
