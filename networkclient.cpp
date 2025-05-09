@@ -73,11 +73,14 @@ void MyTCPClient::slot_readyRead()
         }
     }
 
-    // Handle simulation frames from the server
+    // Deserialize SimulationFrame objects
     while (m_socket.bytesAvailable() >= static_cast<qint64>(sizeof(SimulationFrame))) {
         SimulationFrame frame;
         m_socket.read(reinterpret_cast<char*>(&frame), sizeof(SimulationFrame));
-        qDebug() << "Simulation frame received - Tick:" << frame.tick;
+        qDebug() << "Simulation frame received - Tick:" << frame.tick
+                 << "Generator Output:" << frame.geneartor_output
+                 << "Error:" << frame.error;
+
         Simulation::get_instance().receiveFrameFromServer(frame);
     }
 
