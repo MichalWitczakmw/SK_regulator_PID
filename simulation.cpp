@@ -170,7 +170,7 @@ void Simulation::simulate()
         break;
     }
 }
-
+}
 void Simulation::sendFrameToClient(const SimulationFrame &frame)
 {
     // Tutaj wywołujesz sygnał, do którego podłączysz klasę obsługującą wysyłanie przez sieć
