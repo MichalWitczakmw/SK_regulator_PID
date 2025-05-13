@@ -55,6 +55,7 @@ void MyTCPClient::slot_socket_disconnected()
 
 void MyTCPClient::slot_readyRead()
 {
+    qDebug() << "readyRead odpalony";
     QByteArray message = m_socket.readAll();
     qDebug() << "Message received from server:" << message;
 

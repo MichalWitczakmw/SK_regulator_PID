@@ -23,10 +23,16 @@ void MyTCPServer::broadcastReset() {
 
 void MyTCPServer::sendFrame(const SimulationFrame &frame)
 {
-    QByteArray data(reinterpret_cast<const char*>(&frame), sizeof(SimulationFrame));
-    for (QTcpSocket* client : m_clients) {
-        if (client && client->state() == QAbstractSocket::ConnectedState)
-            client->write(data);
+    static size_t lastTick = 0;
+    if (frame.tick != lastTick) { // Wysyłaj tylko nowe ramki
+        QByteArray data(reinterpret_cast<const char*>(&frame), sizeof(SimulationFrame));
+        for (QTcpSocket* client : m_clients) {
+            if (client && client->isOpen()) {
+                client->write(data);
+            }
+        }
+        lastTick = frame.tick;
+        qDebug() << "SERVER WYSŁAŁ RAMKĘ:" << frame.tick;
     }
 }
 

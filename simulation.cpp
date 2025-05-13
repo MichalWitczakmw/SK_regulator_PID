@@ -192,6 +192,7 @@ void Simulation::sendFrameToClient(const SimulationFrame &frame)
 {
     // Tutaj wywołujesz sygnał, do którego podłączysz klasę obsługującą wysyłanie przez sieć
     emit frameReadyToSendToClient(frame);
+    qDebug() << "wsysłanie do frame ready to sent to client";
 
 }
 
@@ -205,18 +206,20 @@ void Simulation::receiveFrameFromServer(const SimulationFrame &frame)
 {
     // Otrzymujemy bramkę od serwera (po stronie klienta)
     pendingFrameFromServer = frame;
-    qDebug() << "CLIENT OTRZYMAL RAMKE";
+    qDebug() << "CLIENT OTRZYMAŁ RAMKĘ:" << frame.tick;
 
 }
 
 void Simulation::receiveFrameFromClient(const SimulationFrame &frame)
 {
+    qDebug() << "receiveFrameFromClient jest opdalony";
     // Otrzymujemy bramkę od klienta (po stronie serwera) — uzupełnij ostatnią ramkę w historii
     if (!frames.empty()) {
         // Zakładamy, że ostatnia ramka to ta, którą wysłaliśmy do klienta
         SimulationFrame &last = frames.back();
         last.arx_output = frame.arx_output;
         last.noise = frame.noise;
+        qDebug() << "receiveFrameFromClient zdonył bramke";
         // Możesz tu dodać kod do aktualizacji wykresów po stronie serwera, jeśli chcesz
     }
     waitingForClient = false;
