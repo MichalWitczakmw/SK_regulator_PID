@@ -22,6 +22,7 @@ signals:
     void disconnected();
     void messageRecived(QString msg);
     void serverDisconnected(); // Sygnał rozłączenia serwera
+    void newFrameReceived(const SimulationFrame &frame);// Sygnał do aktualizacji wykresu
 
 public slots:
     void sendFrame(const SimulationFrame &frame);

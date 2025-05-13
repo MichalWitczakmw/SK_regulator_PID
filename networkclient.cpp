@@ -32,14 +32,8 @@ void MyTCPClient::slot_readyRead()
             SimulationFrame frame;
             in >> frame; // Deserializacja ramki
 
-            // Przetwarzanie ramki
-            qDebug() << "Odebrano ramkę symulacji - Tick:" << frame.tick;
-            qDebug() << "Generator Output:" << frame.geneartor_output;
-            qDebug() << "PID Output:" << frame.pid_output;
-            qDebug() << "Error:" << frame.error;
-
-            // Dodaj logikę wykorzystania danych (np. aktualizacja UI, zapis do pliku itp.)
-            Simulation::get_instance().receiveFrameFromServer(frame);
+            // Emituj sygnał do aktualizacji wykresu
+            emit newFrameReceived(frame);
         } else {
             qDebug() << "Nieznany typ wiadomości:" << type;
         }

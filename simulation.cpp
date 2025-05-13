@@ -432,3 +432,13 @@ SimulationMode Simulation::get_mode() const
 {
     return this->mode;
 }
+void Simulation::updateChartWithFrame(const SimulationFrame &frame)
+{
+    // Przykład aktualizacji wykresu z nową ramką
+    emit add_series("P", frame.p, ChartPosition::top);
+    emit add_series("PID", frame.pid_output, ChartPosition::top);
+    emit add_series("Generator", frame.geneartor_output, ChartPosition::bottom);
+    emit add_series("Error", frame.error, ChartPosition::middle);
+
+    qDebug() << "Wykres zaktualizowany na podstawie ramki Tick:" << frame.tick;
+}

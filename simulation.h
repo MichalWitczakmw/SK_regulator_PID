@@ -71,6 +71,7 @@ class Simulation : public QObject
     Q_OBJECT
 public:
     static Simulation &get_instance();
+    void updateChartWithFrame(const SimulationFrame &frame);
 
     void set_mode(SimulationMode mode);
     SimulationMode get_mode() const;
