@@ -20,8 +20,7 @@ int main(int argc, char *argv[])
     // Połącz sygnały serwera z wykresem
     QObject::connect(&Simulation::get_instance(), &Simulation::add_series, &chart, &ChartWidget::add_series);
 
-    QObject::connect(&client, &MyTCPClient::add_series, &chart, &ChartWidget::add_series);
     QObject::connect(&client, &MyTCPClient::newFrameReceived, &client, &MyTCPClient::processFrameForChart);
-
+    QObject::connect(&client, &MyTCPClient::add_series, &chart, &ChartWidget::add_series);
     return a.exec();
 }

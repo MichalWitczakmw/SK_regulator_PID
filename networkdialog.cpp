@@ -40,6 +40,32 @@ NetworkDialog::~NetworkDialog()
     delete ui;
 }
 
+// void NetworkDialog::on_pushConnect_clicked()
+// {
+//     QString ip = ui->textIP->toPlainText();
+//     int port = ui->textPORT->toPlainText().toInt();
+
+//     if (ui->radioServerPID->isChecked()) {
+//         // Tworzenie instancji serwera
+//         server = new MyTCPServer(this);
+//         if (server->startListening(port)) {
+//             emit sendData(server); // Wyślij wskaźnik do serwera
+//             QMessageBox::information(this, "Serwer", "Serwer został uruchomiony. Oczekiwanie na klienta...");
+//         } else {
+//             // Obsługa błędu
+//             QMessageBox::warning(this, "Serwer", "Nie udało się uruchomić serwera.");
+//             delete server;
+//             server = nullptr;
+//         }
+//     } else if (ui->radioClientARX->isChecked()) {
+//         // Tworzenie instancji klienta
+//         client = new MyTCPClient(this);
+//         client->connectTo(ip, port);
+//         emit sendData(client); // Wyślij wskaźnik do klienta
+//     }
+
+//     this->accept(); // Zamykamy okno dialogowe po akceptacji
+// }
 void NetworkDialog::on_pushConnect_clicked()
 {
     QString ip = ui->textIP->toPlainText();
@@ -47,28 +73,32 @@ void NetworkDialog::on_pushConnect_clicked()
 
     if (ui->radioServerPID->isChecked()) {
         // Tworzenie instancji serwera
-        server = new MyTCPServer(this);
-        if (server->startListening(port)) {
-            emit sendData(server); // Wyślij wskaźnik do serwera
-            QMessageBox::information(this, "Serwer", "Serwer został uruchomiony. Oczekiwanie na klienta...");
-        } else {
-            // Obsługa błędu
-            QMessageBox::warning(this, "Serwer", "Nie udało się uruchomić serwera.");
-            delete server;
-            server = nullptr;
+        if (!server) {
+            server = new MyTCPServer(this);
+            if (server->startListening(port)) {
+                emit sendData(server);
+                QMessageBox::information(this, "Serwer", "Serwer został uruchomiony. Oczekiwanie na klienta...");
+            } else {
+                QMessageBox::warning(this, "Serwer", "Nie udało się uruchomić serwera.");
+                delete server;
+                server = nullptr;
+            }
         }
     } else if (ui->radioClientARX->isChecked()) {
         // Tworzenie instancji klienta
-        client = new MyTCPClient(this);
-        client->connectTo(ip, port);
-        emit sendData(client); // Wyślij wskaźnik do klienta
+        if (!client) {
+            client = new MyTCPClient(this);
+            client->connectTo(ip, port);
+            emit sendData(client);
+        }
     }
 
-    this->accept(); // Zamykamy okno dialogowe po akceptacji
+    this->accept(); // Zamykamy okno
 }
 void NetworkDialog::closeEvent(QCloseEvent *event)
 {
     emit dialogClosed();  // Emitujemy sygnał o zamknięciu
     QDialog::closeEvent(event);  // Wywołujemy metodę bazową
 }
+
 
