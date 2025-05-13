@@ -48,7 +48,11 @@ template <> constexpr inline auto Simulation::qt_create_metaobjectdata<qt_meta_t
         "series_name",
         "y",
         "ChartPosition",
-        "position"
+        "position",
+        "frameReadyToSendToClient",
+        "SimulationFrame",
+        "frame",
+        "frameReadyToSendToServer"
     };
 
     QtMocHelpers::UintData qt_methods {
@@ -63,6 +67,14 @@ template <> constexpr inline auto Simulation::qt_create_metaobjectdata<qt_meta_t
         // Signal 'add_series'
         QtMocHelpers::SignalData<void(QString, float, ChartPosition)>(6, 2, QMC::AccessPublic, QMetaType::Void, {{
             { QMetaType::QString, 7 }, { QMetaType::Float, 8 }, { 0x80000000 | 9, 10 },
+        }}),
+        // Signal 'frameReadyToSendToClient'
+        QtMocHelpers::SignalData<void(const SimulationFrame &)>(11, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { 0x80000000 | 12, 13 },
+        }}),
+        // Signal 'frameReadyToSendToServer'
+        QtMocHelpers::SignalData<void(const SimulationFrame &)>(14, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { 0x80000000 | 12, 13 },
         }}),
     };
     QtMocHelpers::UintData qt_properties {
@@ -92,6 +104,8 @@ void Simulation::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 2: _t->reset_chart(); break;
         case 3: _t->update_chart(); break;
         case 4: _t->add_series((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<float>>(_a[2])),(*reinterpret_cast< std::add_pointer_t<ChartPosition>>(_a[3]))); break;
+        case 5: _t->frameReadyToSendToClient((*reinterpret_cast< std::add_pointer_t<SimulationFrame>>(_a[1]))); break;
+        case 6: _t->frameReadyToSendToServer((*reinterpret_cast< std::add_pointer_t<SimulationFrame>>(_a[1]))); break;
         default: ;
         }
     }
@@ -105,6 +119,10 @@ void Simulation::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         if (QtMocHelpers::indexOfMethod<void (Simulation::*)()>(_a, &Simulation::update_chart, 3))
             return;
         if (QtMocHelpers::indexOfMethod<void (Simulation::*)(QString , float , ChartPosition )>(_a, &Simulation::add_series, 4))
+            return;
+        if (QtMocHelpers::indexOfMethod<void (Simulation::*)(const SimulationFrame & )>(_a, &Simulation::frameReadyToSendToClient, 5))
+            return;
+        if (QtMocHelpers::indexOfMethod<void (Simulation::*)(const SimulationFrame & )>(_a, &Simulation::frameReadyToSendToServer, 6))
             return;
     }
 }
@@ -128,14 +146,14 @@ int Simulation::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 5)
+        if (_id < 7)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 5;
+        _id -= 7;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 5)
+        if (_id < 7)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 5;
+        _id -= 7;
     }
     return _id;
 }
@@ -168,5 +186,17 @@ void Simulation::update_chart()
 void Simulation::add_series(QString _t1, float _t2, ChartPosition _t3)
 {
     QMetaObject::activate<void>(this, &staticMetaObject, 4, nullptr, _t1, _t2, _t3);
+}
+
+// SIGNAL 5
+void Simulation::frameReadyToSendToClient(const SimulationFrame & _t1)
+{
+    QMetaObject::activate<void>(this, &staticMetaObject, 5, nullptr, _t1);
+}
+
+// SIGNAL 6
+void Simulation::frameReadyToSendToServer(const SimulationFrame & _t1)
+{
+    QMetaObject::activate<void>(this, &staticMetaObject, 6, nullptr, _t1);
 }
 QT_WARNING_POP

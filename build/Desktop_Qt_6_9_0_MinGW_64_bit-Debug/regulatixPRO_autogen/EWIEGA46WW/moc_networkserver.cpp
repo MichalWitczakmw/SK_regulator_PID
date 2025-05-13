@@ -49,6 +49,12 @@ template <> constexpr inline auto MyTCPServer::qt_create_metaobjectdata<qt_meta_
         "clientAddress",
         "clientPort",
         "clientConfirmedConnection",
+        "sendFrame",
+        "SimulationFrame",
+        "frame",
+        "broadcastStart",
+        "broadcastStop",
+        "broadcastReset",
         "slot_new_client",
         "slot_client_disconnetcted",
         "slot_newMsg"
@@ -71,12 +77,22 @@ template <> constexpr inline auto MyTCPServer::qt_create_metaobjectdata<qt_meta_
         }}),
         // Signal 'clientConfirmedConnection'
         QtMocHelpers::SignalData<void()>(10, 2, QMC::AccessPublic, QMetaType::Void),
+        // Slot 'sendFrame'
+        QtMocHelpers::SlotData<void(const SimulationFrame &)>(11, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { 0x80000000 | 12, 13 },
+        }}),
+        // Slot 'broadcastStart'
+        QtMocHelpers::SlotData<void()>(14, 2, QMC::AccessPublic, QMetaType::Void),
+        // Slot 'broadcastStop'
+        QtMocHelpers::SlotData<void()>(15, 2, QMC::AccessPublic, QMetaType::Void),
+        // Slot 'broadcastReset'
+        QtMocHelpers::SlotData<void()>(16, 2, QMC::AccessPublic, QMetaType::Void),
         // Slot 'slot_new_client'
-        QtMocHelpers::SlotData<void()>(11, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(17, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'slot_client_disconnetcted'
-        QtMocHelpers::SlotData<void()>(12, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(18, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'slot_newMsg'
-        QtMocHelpers::SlotData<void()>(13, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(19, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -105,9 +121,13 @@ void MyTCPServer::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id,
         case 2: _t->newMsgFrom((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<int>>(_a[2]))); break;
         case 3: _t->clientConnected((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<quint16>>(_a[2]))); break;
         case 4: _t->clientConfirmedConnection(); break;
-        case 5: _t->slot_new_client(); break;
-        case 6: _t->slot_client_disconnetcted(); break;
-        case 7: _t->slot_newMsg(); break;
+        case 5: _t->sendFrame((*reinterpret_cast< std::add_pointer_t<SimulationFrame>>(_a[1]))); break;
+        case 6: _t->broadcastStart(); break;
+        case 7: _t->broadcastStop(); break;
+        case 8: _t->broadcastReset(); break;
+        case 9: _t->slot_new_client(); break;
+        case 10: _t->slot_client_disconnetcted(); break;
+        case 11: _t->slot_newMsg(); break;
         default: ;
         }
     }
@@ -144,14 +164,14 @@ int MyTCPServer::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 8)
+        if (_id < 12)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 8;
+        _id -= 12;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 8)
+        if (_id < 12)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 8;
+        _id -= 12;
     }
     return _id;
 }

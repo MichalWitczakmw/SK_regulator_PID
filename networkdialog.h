@@ -6,6 +6,7 @@
 #include <QTcpSocket>
 #include "networkclient.h"
 #include "networkserver.h"
+#include <QCloseEvent>
 
 
 namespace Ui {
@@ -20,11 +21,15 @@ public:
     explicit NetworkDialog(QWidget *parent = nullptr);
     ~NetworkDialog();
 
+protected:
+    void closeEvent(QCloseEvent *event) override; // Pamiętaj o `override`
+
 private slots:
     void on_pushConnect_clicked();
 
 signals:
     void sendData(QObject *networkInstance);
+    void dialogClosed();
 
 private:
     Ui::NetworkDialog *ui;

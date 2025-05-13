@@ -1,17 +1,17 @@
 {
 	"AUTOGEN_COMMAND_LINE_LENGTH_MAX" : 32000,
-	"BUILD_DIR" : "C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen",
-	"CMAKE_BINARY_DIR" : "C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug",
-	"CMAKE_CURRENT_BINARY_DIR" : "C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug",
-	"CMAKE_CURRENT_SOURCE_DIR" : "C:/SK_regulator_PID",
+	"BUILD_DIR" : "C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen",
+	"CMAKE_BINARY_DIR" : "C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug",
+	"CMAKE_CURRENT_BINARY_DIR" : "C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug",
+	"CMAKE_CURRENT_SOURCE_DIR" : "C:/Users/szkol/Documents/GitHub/SK_regulator_PID",
 	"CMAKE_EXECUTABLE" : "C:/Qt/Tools/CMake_64/bin/cmake.exe",
 	"CMAKE_LIST_FILES" : 
 	[
-		"C:/SK_regulator_PID/CMakeLists.txt",
-		"C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/.qtc/package-manager/auto-setup.cmake",
+		"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/CMakeLists.txt",
+		"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/.qtc/package-manager/auto-setup.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeDetermineSystem.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeSystem.cmake.in",
-		"C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/CMakeFiles/3.30.5/CMakeSystem.cmake",
+		"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/CMakeFiles/3.30.5/CMakeSystem.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeNinjaFindMake.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeSystemSpecificInitialize.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/Platform/Windows-Initialize.cmake",
@@ -65,7 +65,7 @@
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeFindBinUtils.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/Compiler/GNU-FindBinUtils.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeCXXCompiler.cmake.in",
-		"C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/CMakeFiles/3.30.5/CMakeCXXCompiler.cmake",
+		"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/CMakeFiles/3.30.5/CMakeCXXCompiler.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeSystemSpecificInformation.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeGenericSystem.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeInitializeConfigs.cmake",
@@ -80,7 +80,7 @@
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/Platform/Windows-GNU.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeDetermineRCCompiler.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeRCCompiler.cmake.in",
-		"C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/CMakeFiles/3.30.5/CMakeRCCompiler.cmake",
+		"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/CMakeFiles/3.30.5/CMakeRCCompiler.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeRCInformation.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/Platform/Windows-windres.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeTestRCCompiler.cmake",
@@ -97,7 +97,7 @@
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeDetermineCompilerSupport.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/Internal/FeatureTesting.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeCXXCompiler.cmake.in",
-		"C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/CMakeFiles/3.30.5/CMakeCXXCompiler.cmake",
+		"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/CMakeFiles/3.30.5/CMakeCXXCompiler.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/Platform/Windows-GNU-CXX-ABI.cmake",
 		"C:/Qt/6.9.0/mingw_64/lib/cmake/Qt6/Qt6ConfigVersion.cmake",
 		"C:/Qt/6.9.0/mingw_64/lib/cmake/Qt6/Qt6ConfigVersionImpl.cmake",
@@ -572,74 +572,84 @@
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeFindDependencyMacro.cmake",
 		"C:/Qt/6.9.0/mingw_64/lib/cmake/Qt6/Qt6Dependencies.cmake",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/GNUInstallDirs.cmake",
-		"C:/SK_regulator_PID/resources.qrc"
+		"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/resources.qrc"
 	],
-	"CMAKE_SOURCE_DIR" : "C:/SK_regulator_PID",
+	"CMAKE_SOURCE_DIR" : "C:/Users/szkol/Documents/GitHub/SK_regulator_PID",
 	"CROSS_CONFIG" : false,
-	"DEP_FILE" : "C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/deps",
+	"DEP_FILE" : "C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/deps",
 	"DEP_FILE_RULE_NAME" : "regulatixPRO_autogen/timestamp",
 	"HEADERS" : 
 	[
-		[ "C:/SK_regulator_PID/arx.h", "MU", "EWIEGA46WW/moc_arx.cpp", null ],
 		[
-			"C:/SK_regulator_PID/arxdialog.h",
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/arx.h",
+			"MU",
+			"EWIEGA46WW/moc_arx.cpp",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/arxdialog.h",
 			"MU",
 			"EWIEGA46WW/moc_arxdialog.cpp",
 			null
 		],
 		[
-			"C:/SK_regulator_PID/chartwidget.h",
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/chartwidget.h",
 			"MU",
 			"EWIEGA46WW/moc_chartwidget.cpp",
 			null
 		],
 		[
-			"C:/SK_regulator_PID/exportdialog.h",
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/exportdialog.h",
 			"MU",
 			"EWIEGA46WW/moc_exportdialog.cpp",
 			null
 		],
 		[
-			"C:/SK_regulator_PID/generator.h",
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/generator.h",
 			"MU",
 			"EWIEGA46WW/moc_generator.cpp",
 			null
 		],
 		[
-			"C:/SK_regulator_PID/mainwindow.h",
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/mainwindow.h",
 			"MU",
 			"EWIEGA46WW/moc_mainwindow.cpp",
 			null
 		],
 		[
-			"C:/SK_regulator_PID/networkclient.h",
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/networkclient.h",
 			"MU",
 			"EWIEGA46WW/moc_networkclient.cpp",
 			null
 		],
 		[
-			"C:/SK_regulator_PID/networkdialog.h",
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/networkdialog.h",
 			"MU",
 			"EWIEGA46WW/moc_networkdialog.cpp",
 			null
 		],
 		[
-			"C:/SK_regulator_PID/networkserver.h",
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/networkserver.h",
 			"MU",
 			"EWIEGA46WW/moc_networkserver.cpp",
 			null
 		],
-		[ "C:/SK_regulator_PID/pid.h", "MU", "EWIEGA46WW/moc_pid.cpp", null ],
 		[
-			"C:/SK_regulator_PID/simulation.h",
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/pid.h",
+			"MU",
+			"EWIEGA46WW/moc_pid.cpp",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/simulation.h",
 			"MU",
 			"EWIEGA46WW/moc_simulation.cpp",
 			null
 		]
 	],
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
-	"INCLUDE_DIR" : "C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/include",
-	"MOC_COMPILATION_FILE" : "C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/mocs_compilation.cpp",
+	"INCLUDE_DIR" : "C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/include",
+	"MOC_COMPILATION_FILE" : "C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/mocs_compilation.cpp",
 	"MOC_DEFINITIONS" : 
 	[
 		"MINGW_HAS_SECURE_API=1",
@@ -667,8 +677,8 @@
 	],
 	"MOC_INCLUDES" : 
 	[
-		"C:/SK_regulator_PID",
-		"C:/SK_regulator_PID/include",
+		"C:/Users/szkol/Documents/GitHub/SK_regulator_PID",
+		"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/include",
 		"C:/Qt/6.9.0/mingw_64/include/QtCore",
 		"C:/Qt/6.9.0/mingw_64/include",
 		"C:/Qt/6.9.0/mingw_64/mkspecs/win32-g++",
@@ -705,31 +715,79 @@
 		"-c",
 		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeCXXCompilerABI.cpp"
 	],
-	"MOC_PREDEFS_FILE" : "C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/moc_predefs.h",
+	"MOC_PREDEFS_FILE" : "C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/moc_predefs.h",
 	"MOC_RELAXED_MODE" : false,
 	"MOC_SKIP" : [],
 	"MULTI_CONFIG" : false,
-	"PARALLEL" : 6,
-	"PARSE_CACHE_FILE" : "C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/CMakeFiles/regulatixPRO_autogen.dir/ParseCache.txt",
+	"PARALLEL" : 8,
+	"PARSE_CACHE_FILE" : "C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/CMakeFiles/regulatixPRO_autogen.dir/ParseCache.txt",
 	"QT_MOC_EXECUTABLE" : "C:/Qt/6.9.0/mingw_64/bin/moc.exe",
 	"QT_UIC_EXECUTABLE" : "C:/Qt/6.9.0/mingw_64/bin/uic.exe",
 	"QT_VERSION_MAJOR" : 6,
 	"QT_VERSION_MINOR" : 9,
-	"SETTINGS_FILE" : "C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/CMakeFiles/regulatixPRO_autogen.dir/AutogenUsed.txt",
+	"SETTINGS_FILE" : "C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/CMakeFiles/regulatixPRO_autogen.dir/AutogenUsed.txt",
 	"SOURCES" : 
 	[
-		[ "C:/SK_regulator_PID/arx.cpp", "MU", null ],
-		[ "C:/SK_regulator_PID/arxdialog.cpp", "MU", null ],
-		[ "C:/SK_regulator_PID/chartwidget.cpp", "MU", null ],
-		[ "C:/SK_regulator_PID/exportdialog.cpp", "MU", null ],
-		[ "C:/SK_regulator_PID/generator.cpp", "MU", null ],
-		[ "C:/SK_regulator_PID/main.cpp", "MU", null ],
-		[ "C:/SK_regulator_PID/mainwindow.cpp", "MU", null ],
-		[ "C:/SK_regulator_PID/networkclient.cpp", "MU", null ],
-		[ "C:/SK_regulator_PID/networkdialog.cpp", "MU", null ],
-		[ "C:/SK_regulator_PID/networkserver.cpp", "MU", null ],
-		[ "C:/SK_regulator_PID/pid.cpp", "MU", null ],
-		[ "C:/SK_regulator_PID/simulation.cpp", "MU", null ]
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/arx.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/arxdialog.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/chartwidget.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/exportdialog.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/generator.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/main.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/mainwindow.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/networkclient.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/networkdialog.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/networkserver.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/pid.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/szkol/Documents/GitHub/SK_regulator_PID/simulation.cpp",
+			"MU",
+			null
+		]
 	],
 	"UIC_OPTIONS" : [],
 	"UIC_SEARCH_PATHS" : [],

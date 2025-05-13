@@ -66,4 +66,9 @@ void NetworkDialog::on_pushConnect_clicked()
 
     this->accept(); // Zamykamy okno dialogowe po akceptacji
 }
+void NetworkDialog::closeEvent(QCloseEvent *event)
+{
+    emit dialogClosed();  // Emitujemy sygnał o zamknięciu
+    QDialog::closeEvent(event);  // Wywołujemy metodę bazową
+}
 

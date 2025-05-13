@@ -451,7 +451,7 @@ void MainWindow::on_inside_sum_radio_clicked()
 // }
 
 // Wywołanie NetworkDialog
-void MainWindow::on_Network_clicked()
+/*void MainWindow::on_Network_clicked()
 {
     if (ui->Network->text() == "Network") {
         // Otwórz NetworkDialog w celu ustanowienia połączenia
@@ -483,8 +483,41 @@ void MainWindow::on_Network_clicked()
             ui->labelConnected->setText("Disconnected");
         }
     }
-}
+}*/
+void MainWindow::on_Network_clicked()
+{
+    if (ui->Network->text() == "Network") {
+        if (!networkdialog) {
+            networkdialog = new NetworkDialog(this);
 
+            // Podłączamy sygnał zamknięcia dialogu do resetu wskaźnika
+            connect(networkdialog, &NetworkDialog::dialogClosed, [this]() {
+                networkdialog = nullptr;
+            });
+
+            // Podłączamy inne sygnały, jeśli są potrzebne
+            connect(networkdialog, &NetworkDialog::sendData, this, &MainWindow::handleNetworkInstance);
+        }
+        networkdialog->show();  // Używamy show(), aby otworzyć okno dialogowe
+    } else if (ui->Network->text() == "Disconnect") {
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            this, "Disconnect", "Are you sure you want to disconnect?",
+            QMessageBox::Yes | QMessageBox::No);
+
+        if (reply == QMessageBox::Yes) {
+            if (isServerW && server) {
+                server->disconnectClients();
+                delete server;
+                server = nullptr;
+            } else if (!isServerW && client) {
+                client->notifyDisconnection();
+                delete client;
+                client = nullptr;
+            }
+            ui->Network->setText("Network");
+        }
+    }
+}
 
 void MainWindow::on_chackNetwork_clicked()
 {

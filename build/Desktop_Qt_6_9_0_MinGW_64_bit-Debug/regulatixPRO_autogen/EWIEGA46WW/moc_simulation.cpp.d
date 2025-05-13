@@ -1,5 +1,5 @@
-C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/EWIEGA46WW/moc_simulation.cpp: C:/SK_regulator_PID/simulation.h \
-  C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/moc_predefs.h \
+C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/EWIEGA46WW/moc_simulation.cpp: C:/Users/szkol/Documents/GitHub/SK_regulator_PID/simulation.h \
+  C:/Users/szkol/Documents/GitHub/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autogen/moc_predefs.h \
   C:/Qt/6.9.0/mingw_64/include/QtCore/QObject \
   C:/Qt/6.9.0/mingw_64/include/QtCore/q17memory.h \
   C:/Qt/6.9.0/mingw_64/include/QtCore/q20functional.h \
@@ -411,6 +411,6 @@ C:/SK_regulator_PID/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/regulatixPRO_autog
   C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/vadefs.h \
   C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wchar.h \
   C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wctype.h \
-  C:/SK_regulator_PID/arx.h \
-  C:/SK_regulator_PID/generator.h \
-  C:/SK_regulator_PID/pid.h
+  C:/Users/szkol/Documents/GitHub/SK_regulator_PID/arx.h \
+  C:/Users/szkol/Documents/GitHub/SK_regulator_PID/generator.h \
+  C:/Users/szkol/Documents/GitHub/SK_regulator_PID/pid.h
