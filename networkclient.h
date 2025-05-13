@@ -34,6 +34,7 @@ private:
     QTcpSocket m_socket;
     QString m_ipAddress = "127.0.0.1";
     int m_port = 8080;
+    QByteArray m_buffer;
 };
 
 #endif // NETWORKCLIENT_H

@@ -23,17 +23,24 @@ void MyTCPServer::broadcastReset() {
 
 void MyTCPServer::sendFrame(const SimulationFrame &frame)
 {
-    static size_t lastTick = 0;
-    if (frame.tick != lastTick) {
-        QByteArray data(reinterpret_cast<const char*>(&frame), sizeof(SimulationFrame));
-        for (QTcpSocket* client : m_clients) {
-            if (client && client->isOpen()) {
-                client->write(data);
-                qDebug() << "SERVER WYSŁAŁ RAMKĘ Z TICKIEM:" << frame.tick;
-            }
+    QByteArray payload;
+    QDataStream out(&payload, QIODevice::WriteOnly);
+
+    out << frame;
+
+    QByteArray packet;
+    QDataStream packetStream(&packet, QIODevice::WriteOnly);
+
+    packetStream.writeRawData("FRAM", 4); // typ wiadomości
+    packetStream << quint32(payload.size()); // długość danych
+    packetStream.writeRawData(payload.constData(), payload.size());
+
+    for (QTcpSocket* client : m_clients) {
+        if (client && client->isOpen()) {
+            client->write(packet);
         }
-        lastTick = frame.tick;
     }
+
 }
 
 bool MyTCPServer::startListening(int port)
@@ -56,8 +63,17 @@ int MyTCPServer::getNumClients()
 
 void MyTCPServer::sendMsg(QString msg, int numCli)
 {
-    if(numCli < m_clients.length())
-        m_clients.at(numCli)->write(msg.toUtf8());
+    if (numCli < m_clients.length()) {
+        QByteArray payload = msg.toUtf8();
+
+        QByteArray packet;
+        QDataStream out(&packet, QIODevice::WriteOnly);
+        out.writeRawData("CMD_", 4);
+        out << quint32(payload.size());
+        out.writeRawData(payload.constData(), payload.size());
+
+        m_clients.at(numCli)->write(packet);
+    }
 }
 
 void MyTCPServer::slot_new_client()
@@ -76,11 +92,11 @@ void MyTCPServer::slot_new_client()
 }
 void MyTCPServer::slot_client_disconnetcted()
 {
-    int idx = getClinetID();
-    if (idx >= 0 && idx < m_clients.size()) {
-        QTcpSocket *client = m_clients.at(idx);
+    QTcpSocket *client = qobject_cast<QTcpSocket *>(sender());
+    int idx = m_clients.indexOf(client);
+    if (idx != -1) {
         m_clients.removeAt(idx);
-        client->deleteLater(); // Zwalnia pamięć po gnieździe
+        client->deleteLater();
     }
     emit clientDisconnected();
 }
@@ -90,21 +106,38 @@ void MyTCPServer::slot_newMsg()
     QTcpSocket *client = qobject_cast<QTcpSocket *>(sender());
     if (!client) return;
 
-    // Odbiór ramek SimulationFrame
-    while (client->bytesAvailable() >= static_cast<qint64>(sizeof(SimulationFrame))) {
-        SimulationFrame frame;
-        client->read(reinterpret_cast<char*>(&frame), sizeof(SimulationFrame));
-        Simulation::get_instance().receiveFrameFromClient(frame);
-    }
+    static QMap<QTcpSocket*, QByteArray> buffers;
 
-    // Obsługa ewentualnych tekstowych wiadomości (np. handshake)
-    QByteArray remainingData = client->readAll();
-    if (!remainingData.isEmpty()) {
-        QString message = QString::fromUtf8(remainingData);
-        if (message == "connected") {
-            emit clientConfirmedConnection();
-        } else {
-            qDebug() << "Received message from client:" << message;
+    QByteArray &buffer = buffers[client];
+    buffer.append(client->readAll());
+
+    while (buffer.size() >= 8) {
+        QByteArray typeBytes = buffer.mid(0, 4);
+        QString type(typeBytes);
+
+        QDataStream lengthStream(buffer.mid(4, 4));
+        quint32 payloadSize;
+        lengthStream >> payloadSize;
+
+        if (buffer.size() < 8 + payloadSize)
+            return; // Poczekaj na więcej danych
+
+        QByteArray payload = buffer.mid(8, payloadSize);
+        buffer.remove(0, 8 + payloadSize);
+
+        if (type == "FRAM") {
+            QDataStream in(&payload, QIODevice::ReadOnly);
+            SimulationFrame frame;
+            in >> frame;
+            Simulation::get_instance().receiveFrameFromClient(frame);
+            qDebug() << "SERVER OTRZYMAŁ RAMKĘ Z TICKIEM:" << frame.tick;
+        } else if (type == "CMD_") {
+            QString cmd = QString::fromUtf8(payload);
+            if (cmd == "connected") {
+                emit clientConfirmedConnection();
+            } else {
+                qDebug() << "SERVER RECEIVED CMD:" << cmd;
+            }
         }
     }
 }

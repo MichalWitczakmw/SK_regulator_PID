@@ -42,6 +42,30 @@ struct SimulationFrame
     float noise;
 };
 
+inline QDataStream &operator<<(QDataStream &out, const SimulationFrame &frame) {
+    out << static_cast<quint32>(frame.tick)
+    << frame.geneartor_output
+    << frame.p << frame.i << frame.d
+    << frame.pid_output
+    << frame.error
+    << frame.arx_output
+    << frame.noise;
+    return out;
+}
+
+inline QDataStream &operator>>(QDataStream &in, SimulationFrame &frame) {
+    quint32 tick;
+    in >> tick
+        >> frame.geneartor_output
+        >> frame.p >> frame.i >> frame.d
+        >> frame.pid_output
+        >> frame.error
+        >> frame.arx_output
+        >> frame.noise;
+    frame.tick = tick;
+    return in;
+}
+
 class Simulation : public QObject
 {
     Q_OBJECT
