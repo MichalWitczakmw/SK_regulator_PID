@@ -1,0 +1,42 @@
+# Ignorowanie katalogów build
+/build/
+/dist/
+
+/*.user
+*.pro.user
+*.qmake.stash
+
+# Ignorowanie plików generowanych przez IDE
+.idea/
+.vscode/
+*.swp
+*.bak
+*.log
+*.tmp
+
+# Ignorowanie plików binarnych
+*.exe
+*.dll
+*.so
+*.o
+*.a
+*.out
+
+# Ignorowanie plików CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# Ignorowanie plików tymczasowych
+*.obj
+*.pch
+*.idb
+*.ilk
+*.pdb
+*.manifest
+*.tlog
+*.log
+*.tmp
+
+# Ignorowanie plików backup
+*~
