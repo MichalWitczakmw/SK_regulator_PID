@@ -9,53 +9,53 @@ MyTCPClient::MyTCPClient(QObject *parent)
 
     connect(&m_socket,SIGNAL(disconnected()),this,SIGNAL(disconnected()));
 
-    connect(&m_socket, &QTcpSocket::readyRead, this, &MyTCPClient::slot_gotData);
+    //connect(&m_socket, &QTcpSocket::readyRead, this, &MyTCPClient::slot_gotData);
 }
 
-void MyTCPClient::slot_gotData()
-{
-    QDataStream in(&m_socket);
-    in.setVersion(QDataStream::Qt_5_15);  // lub inna wersja zgodna z Twoją aplikacją
+// void MyTCPClient::slot_gotData()
+// {
+//     QDataStream in(&m_socket);
+//     in.setVersion(QDataStream::Qt_5_15);  // lub inna wersja zgodna z Twoją aplikacją
 
-    while (true)
-    {
-        if (m_socket.bytesAvailable() < 8)
-            return; // za mało danych, czekaj dalej
+//     while (true)
+//     {
+//         if (m_socket.bytesAvailable() < 8)
+//             return; // za mało danych, czekaj dalej
 
-        char type[4];
-        in.readRawData(type, 4);
+//         char type[4];
+//         in.readRawData(type, 4);
 
-        quint32 size;
-        in >> size;
+//         quint32 size;
+//         in >> size;
 
-        if (m_socket.bytesAvailable() < size)
-        {
-            // czekaj aż cały payload dotrze
-            m_socket.seek(m_socket.pos() - 8); // cofnij, bo niepełne dane
-            return;
-        }
+//         if (m_socket.bytesAvailable() < size)
+//         {
+//             // czekaj aż cały payload dotrze
+//             m_socket.seek(m_socket.pos() - 8); // cofnij, bo niepełne dane
+//             return;
+//         }
 
-        QByteArray payload;
-        payload.resize(size);
-        in.readRawData(payload.data(), size);
+//         QByteArray payload;
+//         payload.resize(size);
+//         in.readRawData(payload.data(), size);
 
-        QString typ(QString::fromLatin1(type, 4));
+//         QString typ(QString::fromLatin1(type, 4));
 
-        qDebug() << "Odebrano typ:" << typ << " payload:" << payload;
+//         qDebug() << "Odebrano typ:" << typ << " payload:" << payload;
 
-        if (typ == "CMD_") {
-            QString komenda = QString::fromUtf8(payload);
-            if (komenda == "START") {
-                qDebug() << "Klient: odebrano START";
-                emit startReceived();
-            }
-        }
-        else if (typ == "FRAM") {
-            qDebug() << "Klient: odebrano rameczkę ->" << payload.toHex();
-            emit newFrameReceived(payload);
-        }
-    }
-}
+//         if (typ == "CMD_") {
+//             QString komenda = QString::fromUtf8(payload);
+//             if (komenda == "START") {
+//                 qDebug() << "Klient: odebrano START";
+//                 emit startReceived();
+//             }
+//         }
+//         else if (typ == "FRAM") {
+//             qDebug() << "Klient: odebrano rameczkę ->" << payload.toHex();
+//             emit newFrameReceived(payload);
+//         }
+//     }
+// }
 
 void MyTCPClient::sendFrame(const SimulationFrame &frame)
 {
