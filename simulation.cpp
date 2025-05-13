@@ -46,13 +46,14 @@ void memcopy_s(void *dest, const T &src, size_t size = 1)
 
 void Simulation::simulate()
 {
+    static float error = 0;
+    static float arx_output = 0;
+    static float pid_output = 0;
+    static float generator = 0;
     switch (mode) {
     case SimulationMode::Offline:
     {
-        static float error = 0;
-        static float arx_output = 0;
-        static float pid_output = 0;
-        static float generator = 0;
+
 
         const size_t tick = this->get_tick();
         // const float time = interval / 1000.0f ;
@@ -100,9 +101,6 @@ void Simulation::simulate()
     case SimulationMode::Server:
     {
         // Synchronizacja: serwer czeka na odpowiedź od klienta!
-        static float error = 0;
-        static float generator = 0;
-        static float pid_output = 0;
 
         // Increment the timer if waiting for a client
         if (waitingForClient) {
@@ -154,15 +152,16 @@ void Simulation::simulate()
     }
     case SimulationMode::Client:
     {
+        qDebug() << "CLIENT TRYB";
         // Synchronizacja: klient czeka na ramkę od serwera!
         if (pendingFrameFromServer) {
             SimulationFrame& frame = *pendingFrameFromServer;
-
+            qDebug() << "CLIENT MA RAMKE";
             // Licz ARX/noise
-            float arx_output = this->arx->run(frame.pid_output);
-            frame.arx_output = arx_output;
+            float arx_zmienna = this->arx->run(frame.pid_output);
+            frame.arx_output = arx_zmienna;
             frame.noise = this->arx->noise_part;
-
+            qDebug() << "CLIENT OBLICZYL";
             // <-- Wykresy tylko na serwerze -->
             emit this->add_series("I", frame.i, ChartPosition::top);
             emit this->add_series("D", frame.d, ChartPosition::top);
@@ -181,6 +180,7 @@ void Simulation::simulate()
             // (możesz te linie usunąć lub zakomentować)
 
             sendFrameToServer(frame);
+            qDebug() << "CLIENT WYWOŁAŁ WYSŁANIE";
             pendingFrameFromServer.reset();
         }
         // Jeśli nie ma pendingFrameFromServer – czekaj na receiveFrameFromServer()
@@ -192,17 +192,21 @@ void Simulation::sendFrameToClient(const SimulationFrame &frame)
 {
     // Tutaj wywołujesz sygnał, do którego podłączysz klasę obsługującą wysyłanie przez sieć
     emit frameReadyToSendToClient(frame);
+
 }
 
 void Simulation::sendFrameToServer(const SimulationFrame &frame)
 {
     emit frameReadyToSendToServer(frame);
+    qDebug() << "CLIENT WYWOŁAŁ  WYSŁANIE RAMKI DO SERVERA";
 }
 
 void Simulation::receiveFrameFromServer(const SimulationFrame &frame)
 {
     // Otrzymujemy bramkę od serwera (po stronie klienta)
     pendingFrameFromServer = frame;
+    qDebug() << "CLIENT OTRZYMAL RAMKE";
+
 }
 
 void Simulation::receiveFrameFromClient(const SimulationFrame &frame)

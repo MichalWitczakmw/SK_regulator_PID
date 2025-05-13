@@ -75,6 +75,7 @@ void MyTCPClient::slot_readyRead()
 
     // Deserialize SimulationFrame objects
     while (m_socket.bytesAvailable() >= static_cast<qint64>(sizeof(SimulationFrame))) {
+
         SimulationFrame frame;
         m_socket.read(reinterpret_cast<char*>(&frame), sizeof(SimulationFrame));
         qDebug() << "Simulation frame received - Tick:" << frame.tick
