@@ -33,25 +33,13 @@ void MyTCPClient::slot_readyRead()
             SimulationFrame frame;
             in >> frame; // Deserializacja ramki
 
-            // Emituj sygnał do aktualizacji wykresu
+            // Emituj sygnał o nowej ramce
             emit newFrameReceived(frame);
-            qDebug() << "CLIENT received frame (tick):" << frame.tick;
         } else {
             qDebug() << "Unknown message type:" << type;
         }
     }
 }
-
-void MyTCPClient::sendFrame(const SimulationFrame &frame)
-{
-    QByteArray buffer;
-    QDataStream out(&buffer, QIODevice::WriteOnly);
-    out << frame; // Serializacja ramki
-    m_socket.write(buffer);
-
-    qDebug() << "CLIENT sent frame to server (tick):" << frame.tick;
-}
-
 void MyTCPClient::connectTo(QString address, int port)
 {
     m_ipAddress = address;
@@ -68,14 +56,6 @@ void MyTCPClient::sendMsg(QString msg)
 {
     QByteArray data = msg.toUtf8();
     m_socket.write(data);
-}
-
-void MyTCPClient::slot_connected()
-{
-    if (m_socket.state() == QAbstractSocket::ConnectedState) {
-        m_socket.write("connected");
-        emit connected(getServerAddress(), getServerPort());
-    }
 }
 
 void MyTCPClient::slot_socket_disconnected()
@@ -107,4 +87,36 @@ QString MyTCPClient::getServerAddress() const
 int MyTCPClient::getServerPort() const
 {
     return m_socket.peerPort();
+}
+void MyTCPClient::slot_connected()
+{
+    if (m_socket.state() == QAbstractSocket::ConnectedState) {
+        m_socket.write("connected");
+        emit connected(getServerAddress(), getServerPort());
+
+        // Inicjalizacja wykresu po połączeniu
+        emit initializeChart();
+    }
+}
+void MyTCPClient::processFrameForChart(const SimulationFrame &frame)
+{
+    // Rysowanie wykresów na podstawie danych PID i ARX
+    emit add_series("PID", frame.pid_output, ChartPosition::top);
+    emit add_series("ARX", frame.arx_output, ChartPosition::bottom);
+
+    // Oblicz dane ARX i odsyłaj do serwera
+    SimulationFrame newFrame = frame;
+    newFrame.arx_output = Simulation::get_instance().arx->run(frame.pid_output);
+    newFrame.noise = Simulation::get_instance().arx->noise_part;
+
+    sendFrame(newFrame);
+}
+void MyTCPClient::sendFrame(const SimulationFrame &frame)
+{
+    QByteArray buffer;
+    QDataStream out(&buffer, QIODevice::WriteOnly);
+    out << frame; // Serializacja ramki
+    m_socket.write(buffer);
+
+    qDebug() << "CLIENT sent frame to server (tick):" << frame.tick;
 }

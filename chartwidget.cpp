@@ -164,3 +164,13 @@ void ChartWidget::scroll_chart()
 {
     this->axis_x->setRange(0, this->simulation.get_tick());
 }
+void ChartWidget::initialize_chart()
+{
+    // Resetuj wykres
+    this->reset();
+
+    // Dodaj domyślną serię
+    this->add_series("Default Series", 0.0, ChartPosition::bottom);
+
+    qDebug() << "Chart initialized after client connected.";
+}

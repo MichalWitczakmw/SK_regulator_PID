@@ -32,6 +32,7 @@ public slots:
     void add_series(QString series_name, float y, ChartPosition position);
     void reset();
     void update_chart();
+    void initialize_chart();  // Nowa metoda do inicjalizacji wykresu
 
     std::vector<QLineSeries *> get_series_list() const { return this->series_list; }
     ChartPosition get_position() const { return this->position; }

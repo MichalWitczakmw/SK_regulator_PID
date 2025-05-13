@@ -107,11 +107,34 @@ void MyTCPServer::slot_newMsg()
 
     static QMap<QTcpSocket*, QByteArray> buffers;
     buffers[client].append(client->readAll());
-    // Obsługa wiadomości do zaimplementowania
+
+    while (buffers[client].size() >= 8) {
+        QByteArray typeBytes = buffers[client].mid(0, 4); // Typ wiadomości (np. "FRAM")
+        QString type(typeBytes);
+
+        QDataStream lengthStream(buffers[client].mid(4, 4)); // Rozmiar danych
+        quint32 payloadSize;
+        lengthStream >> payloadSize;
+
+        if (buffers[client].size() < 8 + payloadSize)
+            return; // Poczekaj na więcej danych
+
+        QByteArray payload = buffers[client].mid(8, payloadSize);
+        buffers[client].remove(0, 8 + payloadSize);
+
+        if (type == "FRAM") {
+            QDataStream in(&payload, QIODevice::ReadOnly);
+            SimulationFrame frame;
+            in >> frame; // Deserializacja ramki
+
+            // Aktualizacja wykresu na serwerze
+            emit Simulation::get_instance().add_series("ARX", frame.arx_output, ChartPosition::bottom);
+        }
+    }
 }
 void MyTCPServer::disconnectClients()
 {
-    for (QTcpSocket *client : m_clients) {
+    for (QTcpSocket *client : std::as_const(m_clients)) {
         if (client->isOpen()) {
             client->write("Server disconnected");
             client->flush();

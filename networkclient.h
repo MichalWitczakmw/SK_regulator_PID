@@ -16,6 +16,7 @@ public:
     void notifyDisconnection(); // Funkcja do powiadamiania serwera o rozłączeniu
     QString getServerAddress() const;
     int getServerPort() const;
+    void processFrameForChart(const SimulationFrame &frame);
 
 signals:
     void connected(QString adr, int port);
@@ -23,6 +24,8 @@ signals:
     void messageRecived(QString msg);
     void serverDisconnected(); // Sygnał rozłączenia serwera
     void newFrameReceived(const SimulationFrame &frame);// Sygnał do aktualizacji wykresu
+    void initializeChart();
+    void add_series(QString series_name, float y, ChartPosition position);
 
 public slots:
     void sendFrame(const SimulationFrame &frame);
