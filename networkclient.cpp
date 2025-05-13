@@ -3,12 +3,13 @@
 MyTCPClient::MyTCPClient(QObject *parent)
     : QObject{parent}, m_socket(this)
 {
-    connect(&m_socket,SIGNAL(connected()),this,SLOT(slot_connected()));
+    connect(&m_socket, SIGNAL(connected()), this, SLOT(slot_connected()));
     connect(&m_socket, SIGNAL(disconnected()), this, SLOT(slot_socket_disconnected()));
-    connect(&m_socket,SIGNAL(readyRead()),this,SLOT(slot_readyRead()));
+    connect(&m_socket, SIGNAL(readyRead()), this, SLOT(slot_readyRead()));
 
-    connect(&m_socket,SIGNAL(disconnected()),this,SIGNAL(disconnected()));
+    connect(&m_socket, SIGNAL(disconnected()), this, SIGNAL(disconnected()));
 }
+
 void MyTCPClient::slot_readyRead()
 {
     m_buffer.append(m_socket.readAll());
@@ -34,28 +35,28 @@ void MyTCPClient::slot_readyRead()
 
             // Emituj sygnał do aktualizacji wykresu
             emit newFrameReceived(frame);
+            qDebug() << "CLIENT received frame (tick):" << frame.tick;
         } else {
-            qDebug() << "Nieznany typ wiadomości:" << type;
+            qDebug() << "Unknown message type:" << type;
         }
     }
 }
+
 void MyTCPClient::sendFrame(const SimulationFrame &frame)
 {
     QByteArray buffer;
     QDataStream out(&buffer, QIODevice::WriteOnly);
-    //out.setVersion(QDataStream::Qt_6_2);  // lub inna wersja zgodna z Twoim Qt
-
-    out << frame;
+    out << frame; // Serializacja ramki
     m_socket.write(buffer);
 
-    qDebug() << "Frame sent to server (tick):" << frame.tick;
+    qDebug() << "CLIENT sent frame to server (tick):" << frame.tick;
 }
 
 void MyTCPClient::connectTo(QString address, int port)
 {
     m_ipAddress = address;
     m_port = port;
-    m_socket.connectToHost(m_ipAddress,port);
+    m_socket.connectToHost(m_ipAddress, port);
 }
 
 void MyTCPClient::disconnectFrom()
@@ -84,8 +85,6 @@ void MyTCPClient::slot_socket_disconnected()
     emit serverDisconnected();
 }
 
-
-// Poprawiona funkcja sprawdzająca faktyczne połączenie
 bool MyTCPClient::isConnected() const
 {
     return m_socket.state() == QAbstractSocket::ConnectedState;
@@ -102,12 +101,10 @@ void MyTCPClient::notifyDisconnection()
 
 QString MyTCPClient::getServerAddress() const
 {
-    // Zwraca adres IP serwera, z którym klient jest połączony
     return m_socket.peerAddress().toString();
 }
 
 int MyTCPClient::getServerPort() const
 {
-    // Zwraca port serwera, z którym klient jest połączony
     return m_socket.peerPort();
 }

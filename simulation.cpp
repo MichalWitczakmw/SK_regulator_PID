@@ -196,35 +196,35 @@ void Simulation::sendFrameToClient(const SimulationFrame &frame)
 
 }
 
-void Simulation::sendFrameToServer(const SimulationFrame &frame)
-{
-    emit frameReadyToSendToServer(frame);
-    qDebug() << "CLIENT WYWOŁAŁ  WYSŁANIE RAMKI DO SERVERA";
-}
+// void Simulation::sendFrameToServer(const SimulationFrame &frame)
+// {
+//     emit frameReadyToSendToServer(frame);
+//     qDebug() << "CLIENT WYWOŁAŁ  WYSŁANIE RAMKI DO SERVERA";
+// }
 
-void Simulation::receiveFrameFromServer(const SimulationFrame &frame)
-{
-    // Otrzymujemy bramkę od serwera (po stronie klienta)
-    pendingFrameFromServer = frame;
-    qDebug() << "CLIENT OTRZYMAŁ RAMKĘ:" << frame.tick;
+// void Simulation::receiveFrameFromServer(const SimulationFrame &frame)
+// {
+//     // Otrzymujemy bramkę od serwera (po stronie klienta)
+//     pendingFrameFromServer = frame;
+//     qDebug() << "CLIENT OTRZYMAŁ RAMKĘ:" << frame.tick;
 
-}
+// }
 
-void Simulation::receiveFrameFromClient(const SimulationFrame &frame)
-{
-    qDebug() << "receiveFrameFromClient jest opdalony";
-    // Otrzymujemy bramkę od klienta (po stronie serwera) — uzupełnij ostatnią ramkę w historii
-    if (!frames.empty()) {
-        // Zakładamy, że ostatnia ramka to ta, którą wysłaliśmy do klienta
-        SimulationFrame &last = frames.back();
-        last.arx_output = frame.arx_output;
-        last.noise = frame.noise;
-        qDebug() << "receiveFrameFromClient zdonył bramke";
-        // Możesz tu dodać kod do aktualizacji wykresów po stronie serwera, jeśli chcesz
-    }
-    waitingForClient = false;
+// void Simulation::receiveFrameFromClient(const SimulationFrame &frame)
+// {
+//     qDebug() << "receiveFrameFromClient jest opdalony";
+//     // Otrzymujemy bramkę od klienta (po stronie serwera) — uzupełnij ostatnią ramkę w historii
+//     if (!frames.empty()) {
+//         // Zakładamy, że ostatnia ramka to ta, którą wysłaliśmy do klienta
+//         SimulationFrame &last = frames.back();
+//         last.arx_output = frame.arx_output;
+//         last.noise = frame.noise;
+//         qDebug() << "receiveFrameFromClient zdonył bramke";
+//         // Możesz tu dodać kod do aktualizacji wykresów po stronie serwera, jeśli chcesz
+//     }
+//     waitingForClient = false;
 
-}
+// }
 
 void Simulation::update_timeout_threshold()
 {
@@ -432,13 +432,20 @@ SimulationMode Simulation::get_mode() const
 {
     return this->mode;
 }
-void Simulation::updateChartWithFrame(const SimulationFrame &frame)
+void Simulation::sendFrameToServer(const SimulationFrame &frame)
 {
-    // Przykład aktualizacji wykresu z nową ramką
-    emit add_series("P", frame.p, ChartPosition::top);
-    emit add_series("PID", frame.pid_output, ChartPosition::top);
-    emit add_series("Generator", frame.geneartor_output, ChartPosition::bottom);
-    emit add_series("Error", frame.error, ChartPosition::middle);
+    emit frameReadyToSendToServer(frame);
+    qDebug() << "CLIENT sent ARX frame to server (tick):" << frame.tick;
+}
 
-    qDebug() << "Wykres zaktualizowany na podstawie ramki Tick:" << frame.tick;
+void Simulation::receiveFrameFromServer(const SimulationFrame &frame)
+{
+    qDebug() << "CLIENT received frame from server (tick):" << frame.tick;
+    emit add_series("ARX", frame.arx_output, ChartPosition::bottom);
+}
+
+void Simulation::receiveFrameFromClient(const SimulationFrame &frame)
+{
+    qDebug() << "SERVER received frame from client (tick):" << frame.tick;
+    // Możesz tutaj zaktualizować wykresy serwera
 }
