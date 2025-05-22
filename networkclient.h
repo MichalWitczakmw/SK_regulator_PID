@@ -26,6 +26,8 @@ signals:
     void newFrameReceived(const SimulationFrame &frame);// Sygnał do aktualizacji wykresu
     void initializeChart();
     void add_series(QString series_name, float y, ChartPosition position);
+    void startSimulation(); // Signal to start simulation
+    void stopSimulation();  // Signal to stop simulation
 
 public slots:
     void sendFrame(const SimulationFrame &frame);

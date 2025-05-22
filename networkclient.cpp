@@ -10,20 +10,19 @@ MyTCPClient::MyTCPClient(QObject *parent)
     connect(&m_socket, SIGNAL(disconnected()), this, SIGNAL(disconnected()));
 }
 
-void MyTCPClient::slot_readyRead()
-{
+void MyTCPClient::slot_readyRead() {
     m_buffer.append(m_socket.readAll());
 
     while (m_buffer.size() >= 8) {
-        QByteArray typeBytes = m_buffer.mid(0, 4); // Typ wiadomości (np. "FRAM")
+        QByteArray typeBytes = m_buffer.mid(0, 4); // Message type
         QString type(typeBytes);
 
-        QDataStream lengthStream(m_buffer.mid(4, 4)); // Rozmiar danych
+        QDataStream lengthStream(m_buffer.mid(4, 4)); // Payload size
         quint32 payloadSize;
         lengthStream >> payloadSize;
 
         if (m_buffer.size() < 8 + payloadSize)
-            return; // Poczekaj na więcej danych
+            return; // Wait for more data
 
         QByteArray payload = m_buffer.mid(8, payloadSize);
         m_buffer.remove(0, 8 + payloadSize);
@@ -31,12 +30,16 @@ void MyTCPClient::slot_readyRead()
         if (type == "FRAM") {
             QDataStream in(&payload, QIODevice::ReadOnly);
             SimulationFrame frame;
-            in >> frame; // Deserializacja ramki
+            in >> frame; // Deserialize frame
 
-            // Emituj sygnał o nowej ramce
             emit newFrameReceived(frame);
-        } else {
-            qDebug() << "Unknown message type:" << type;
+        } else if (type == "CMD_") {
+            QString command(payload);
+            if (command == "START") {
+                emit startSimulation();
+            } else if (command == "STOP") {
+                emit stopSimulation();
+            }
         }
     }
 }

@@ -5,546 +5,125 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include "./ui_mainwindow.h"
-#include "exportdialog.h"
 #include "networkdialog.h"
-
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , simulation(Simulation::get_instance())
+    , chart(new ChartWidget(this)) // Inicjalizacja chart
+    , client(new MyTCPClient(this)) // Inicjalizacja client
+    , server(nullptr) // Serwer ustawiony na nullptr
+    , networkdialog(nullptr) // Dialog sieciowy również ustawiony na nullptr
 {
     ui->setupUi(this);
-
     init();
 
-    connect(&this->simulation, &Simulation::simulation_start, this, &MainWindow::simulation_start);
-    connect(&this->simulation, &Simulation::simulation_stop, this, &MainWindow::simulation_stop);
+    // Połączenia sygnałów symulacji z MainWindow
+    connect(&simulation, &Simulation::simulation_start, this, &MainWindow::simulation_start);
+    connect(&simulation, &Simulation::simulation_stop, this, &MainWindow::simulation_stop);
 
-    connect(this->ui->action_save_as, &QAction::triggered, this, &MainWindow::action_save_as);
-    connect(this->ui->action_open, &QAction::triggered, this, &MainWindow::action_open);
-    connect(this->ui->action_export,
-            &QAction::triggered,
-            this,
-            &MainWindow::action_simulation_export);
-    connect(this->ui->action_simulation_open,
-            &QAction::triggered,
-            this,
-            &MainWindow::action_simulation_open);
+    // Łączenie sygnałów klienta z funkcjami symulacji i wykresu
+    connect(client, &MyTCPClient::newFrameReceived, this, &MainWindow::addSeriesFromFrame);
 
-    // Podłącz sygnał kliknięcia przycisku do naszego slotu
+    // Połączenia sygnałów UI z funkcjami MainWindow
+    connect(ui->action_save_as, &QAction::triggered, this, &MainWindow::action_save_as);
+    connect(ui->action_open, &QAction::triggered, this, &MainWindow::action_open);
+    connect(ui->action_export, &QAction::triggered, this, &MainWindow::action_simulation_export);
+    connect(ui->action_simulation_open, &QAction::triggered, this, &MainWindow::action_simulation_open);
     connect(ui->Network, &QPushButton::clicked, this, &MainWindow::on_Network_clicked);
-
-
-}
-
-void MainWindow::action_simulation_open()
-{
-    qDebug() << "open";
-
-    QString file_name = QFileDialog::getOpenFileName(this,
-                                                     "Open simulated csv",
-                                                     "",
-                                                     "Simulated data (*.csv)");
-
-    QFile file(file_name);
-
-    QString header;
-
-    if (file.open(QIODevice::ReadOnly)) {
-        header = file.readLine();
-
-        QStringList header_parts = header.split(",");
-        if (header_parts.size() != 9) {
-            for (auto &part : header_parts) {
-                qDebug() << part;
-            }
-            qDebug() << header_parts.size();
-            qDebug() << "invalid header";
-            return;
-        }
-
-        this->simulation.reset();
-
-        while (!file.atEnd()) {
-            QString line = file.readLine();
-
-            QStringList parts = line.split(",");
-
-            // parse to frame
-            SimulationFrame frame;
-
-            frame.tick = parts[0].toInt();
-            frame.i = parts[1].toFloat();
-            frame.p = parts[2].toFloat();
-            frame.d = parts[3].toFloat();
-            frame.pid_output = parts[4].toFloat();
-            frame.geneartor_output = parts[5].toFloat();
-            frame.error = parts[6].toFloat();
-            frame.arx_output = parts[7].toFloat();
-            frame.noise = parts[8].toFloat();
-
-            emit this->simulation.add_series("I", frame.i, ChartPosition::top);
-            emit this->simulation.add_series("P", frame.p, ChartPosition::top);
-            emit this->simulation.add_series("D", frame.d, ChartPosition::top);
-            emit this->simulation.add_series("PID Output", frame.pid_output, ChartPosition::top);
-
-            emit this->simulation.add_series("Generator Output",
-                                             frame.geneartor_output,
-                                             ChartPosition::middle);
-            emit this->simulation.add_series("Error", frame.error, ChartPosition::middle);
-
-            emit this->simulation.add_series("ARX Output", frame.arx_output, ChartPosition::bottom);
-            emit this->simulation.add_series("Noise", frame.noise, ChartPosition::middle);
-
-            this->simulation.increment_tick();
-            this->simulation.frames.push_back(frame);
-        }
-
-        file.close();
-    }
-}
-
-void MainWindow::action_simulation_export()
-{
-    this->simulation.stop();
-
-    ExportDialog dialog;
-    bool result = dialog.exec();
-
-    if (!result)
-        return;
-
-    ExportChecked checked = dialog.get_checked();
-
-    QString file_name = QFileDialog::getSaveFileName(this,
-                                                     "Export simulation",
-                                                     "",
-                                                     "CSV files (*.csv)");
-
-    QFile file(file_name);
-
-    const QString SEPARATOR = ",";
-
-    QString header = "Time" + SEPARATOR;
-
-    qDebug() << (checked.error);
-
-    if (checked.pid_i)
-        header += "PID I" + SEPARATOR;
-    if (checked.pid_p)
-        header += "PID P" + SEPARATOR;
-    if (checked.pid_d)
-        header += "PID D" + SEPARATOR;
-    if (checked.pid_output)
-        header += "PID Output" + SEPARATOR;
-    if (checked.error)
-        header += "Error" + SEPARATOR;
-
-    if (checked.generator_output)
-        header += "Generator Output" + SEPARATOR;
-    ;
-    if (checked.arx_output)
-        header += "ARX Output" + SEPARATOR;
-    if (checked.arx_noise)
-        header += "ARX Noise" + SEPARATOR;
-
-    header.chop(1);
-
-    if (file.open(QIODevice::WriteOnly)) {
-        file.write(header.toUtf8());
-        file.write("\n");
-
-        for (auto &frame : this->simulation.frames) {
-            QString result = QString::number(frame.tick) + SEPARATOR;
-            if (checked.pid_i)
-                result += QString::number(frame.i) + SEPARATOR;
-            if (checked.pid_p)
-                result += QString::number(frame.p) + SEPARATOR;
-            if (checked.pid_d)
-                result += QString::number(frame.d) + SEPARATOR;
-            if (checked.pid_output)
-                result += QString::number(frame.pid_output) + SEPARATOR;
-            if (checked.generator_output)
-                result += QString::number(frame.geneartor_output) + SEPARATOR;
-            if (checked.error)
-                result += QString::number(frame.error) + SEPARATOR;
-            if (checked.arx_output)
-                result += QString::number(frame.arx_output) + SEPARATOR;
-            if (checked.arx_noise)
-                result += QString::number(frame.noise) + SEPARATOR;
-
-            result.chop(1);
-            result += "\n";
-
-            file.write(result.toUtf8());
-        }
-
-        file.close();
-    }
+    connect(ui->chackNetwork, &QPushButton::clicked, this, &MainWindow::on_chackNetwork_clicked);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-    // Usuń dynamicznie utworzone obiekty, jeśli istnieją
-    if (server) delete server;
-    if (client) delete client;
-}
-
-void MainWindow::action_save_as()
-{
-    qDebug() << "save as";
-
-    std::vector<std::byte> data{this->simulation.serialize()};
-
-    QString file_name = QFileDialog::getSaveFileName(this,
-                                                     "Save simulation",
-                                                     "",
-                                                     "Simulation files (*.dat)");
-
-    QFile file(file_name);
-    if (file.open(QIODevice::WriteOnly)) {
-        file.write(reinterpret_cast<const char *>(data.data()), data.size());
-        file.close();
-    }
-
-    qDebug() << "saved";
-}
-
-void MainWindow::action_open()
-{
-    qDebug() << "open";
-
-    QString file_name = QFileDialog::getOpenFileName(this,
-                                                     "Open simulation",
-                                                     "",
-                                                     "Simulation files (*.dat)");
-
-    QFile file(file_name);
-    if (file.open(QIODevice::ReadOnly)) {
-        std::vector<std::byte> data(file.size());
-        file.read(reinterpret_cast<char *>(data.data()), data.size());
-        file.close();
-
-        this->simulation.deserialize(data);
-    }
-
-    this->init();
-
-    qDebug() << "opened";
+    delete server;
+    delete client;
+    delete networkdialog;
 }
 
 void MainWindow::init()
 {
-    // simulation
+    // Inicjalizacja symulacji i elementów UI
+    simulation.stop();
+    ui->simulation_interval_input->setValue(simulation.get_interval());
+    ui->simulation_duration_input->setValue(simulation.durration);
 
-    // this->ui->simulation_ticks_per_second_input->setValue(this->simulation.get_ticks_per_second());
+    ui->pid_kp_input->setValue(simulation.pid->get_kp());
+    ui->pid_ti_input->setValue(simulation.pid->get_ti());
+    ui->pid_td_input->setValue(simulation.pid->get_td());
 
-    this->ui->simulation_interval_input->setValue(this->simulation.get_interval());
-    this->simulation.stop();
+    ui->generator_amplitude_input->setValue(simulation.generator->get_amplitude());
+    ui->generator_frequency_input->setValue(simulation.generator->get_frequency());
+    ui->generator_generatortype_input->setCurrentIndex(static_cast<int>(simulation.generator->get_type()));
+    ui->generator_infill_input->setValue(simulation.generator->get_infill());
 
-    this->ui->simulation_duration_input->setValue(this->simulation.durration);
-
-    // pid
-
-    this->ui->pid_kp_input->setValue(this->simulation.pid->get_kp());
-    this->ui->pid_ti_input->setValue(this->simulation.pid->get_ti());
-    this->ui->pid_td_input->setValue(this->simulation.pid->get_td());
-
-    // generator
-
-    this->ui->generator_amplitude_input->setValue(this->simulation.generator->get_amplitude());
-    this->ui->generator_frequency_input->setValue(this->simulation.generator->get_frequency());
-    this->ui->generator_generatortype_input->setCurrentIndex(
-        static_cast<int>(this->simulation.generator->get_type()));
-    this->ui->generator_infill_input->setValue(this->simulation.generator->get_infill());
-    // arx
-
-    this->ui->arx_noise_input->setValue(this->simulation.arx->get_noise());
-    this->ui->arx_noisetype_input->setCurrentIndex(
-        static_cast<int>(this->simulation.arx->get_noise_type()));
-    this->ui->arx_delay_input->setValue(this->simulation.arx->get_delay());
-
-    QStringList a_values;
-
-    for (double value : this->simulation.arx->get_a()) {
-        a_values.push_back(QString::number(value));
-    }
-
-    this->ui->arx_a_input->setText(a_values.join(","));
-
-    QStringList b_values;
-
-    for (double value : this->simulation.arx->get_b()) {
-        b_values.push_back(QString::number(value));
-    }
-
-    this->ui->arx_b_input->setText(b_values.join(","));
+    ui->arx_noise_input->setValue(simulation.arx->get_noise());
+    ui->arx_noisetype_input->setCurrentIndex(static_cast<int>(simulation.arx->get_noise_type()));
+    ui->arx_delay_input->setValue(simulation.arx->get_delay());
 }
 
 void MainWindow::simulation_start()
 {
-    this->ui->simulation_start_button->setEnabled(false);
-    this->ui->simulation_stop_button->setEnabled(true);
+    ui->simulation_start_button->setEnabled(false);
+    ui->simulation_stop_button->setEnabled(true);
 }
 
 void MainWindow::simulation_stop()
 {
-    this->ui->simulation_start_button->setEnabled(true);
-    this->ui->simulation_stop_button->setEnabled(false);
+    ui->simulation_start_button->setEnabled(true);
+    ui->simulation_stop_button->setEnabled(false);
 }
 
 void MainWindow::on_simulation_start_button_clicked()
 {
-    if (this->simulation.durration == 0) {
-        this->simulation.start();
-    } else {
-        this->simulation.start();
-
-        auto timer = new QTimer(this);
-        timer->setSingleShot(true);
-        connect(timer, &QTimer::timeout, [this]() { this->simulation.stop(); });
-
-        timer->start(this->simulation.durration * 1000);
-    }
+    simulation.start();
 }
 
 void MainWindow::on_simulation_stop_button_clicked()
 {
-    this->simulation.stop();
+    simulation.stop();
 }
 
 void MainWindow::on_simulation_duration_input_editingFinished()
 {
-    if (this->simulation.is_running)
-        this->simulation.stop();
-
-    this->simulation.set_duration(this->ui->simulation_duration_input->value());;
-}
-
-void MainWindow::on_pid_ti_input_editingFinished()
-{
-    this->simulation.pid->set_ti(this->ui->pid_ti_input->value());
-}
-
-void MainWindow::on_pid_td_input_editingFinished()
-{
-    this->simulation.pid->set_td(this->ui->pid_td_input->value());
-}
-
-void MainWindow::on_pid_kp_input_editingFinished()
-{
-    this->simulation.pid->set_kp(this->ui->pid_kp_input->value());
-}
-
-void MainWindow::on_generator_amplitude_input_editingFinished()
-{
-    this->simulation.generator->set_amplitude(this->ui->generator_amplitude_input->value());
-}
-
-void MainWindow::on_generator_frequency_input_editingFinished()
-{
-    this->simulation.generator->set_frequency(this->ui->generator_frequency_input->value());
-}
-
-void MainWindow::on_generator_generatortype_input_currentIndexChanged(int index)
-{
-    this->simulation.generator->set_type(static_cast<GeneratorType>(index));
-}
-
-void MainWindow::on_arx_noise_input_editingFinished()
-{
-    this->simulation.arx->set_noise(this->ui->arx_noise_input->value());
-}
-
-void MainWindow::on_arx_noisetype_input_currentIndexChanged(int index)
-{
-    this->simulation.arx->set_noise_type(static_cast<NoiseType>(index));
-}
-
-void MainWindow::on_arx_delay_input_editingFinished()
-{
-    this->simulation.arx->set_delay(this->ui->arx_delay_input->value());
-}
-
-void MainWindow::on_arx_b_input_editingFinished()
-{
-    QString arg1 = this->ui->arx_b_input->text();
-    QStringList b_values = arg1.split(",");
-    std::vector<float> b;
-    for (const QString &value : b_values) {
-        if (value.isEmpty())
-            continue;
-        try {
-            b.push_back(value.toFloat());
-        } catch (const std::exception &e) {
-            qDebug() << e.what();
-        }
-    }
-
-    this->simulation.arx->set_b(b);
-}
-
-void MainWindow::on_arx_a_input_editingFinished()
-{
-    QString arg1 = this->ui->arx_a_input->text();
-
-    QStringList a_values = arg1.split(",");
-    std::vector<float> a;
-    for (const QString &value : a_values) {
-        if (value.isEmpty())
-            continue;
-        try {
-            a.push_back(value.toFloat());
-        } catch (const std::exception &e) {
-            qDebug() << e.what();
-        }
-    }
-
-    this->simulation.arx->set_a(a);
-}
-
-void MainWindow::on_simulation_reset_button_clicked()
-{
-    emit this->simulation.reset();
+    simulation.set_duration(ui->simulation_duration_input->value());
 }
 
 void MainWindow::on_simulation_interval_input_editingFinished()
 {
-    if (this->simulation.is_running)
-        this->simulation.stop();
-    this->simulation.set_interval(this->ui->simulation_interval_input->value());
-
-    this->simulation.start();
+    simulation.set_interval(ui->simulation_interval_input->value());
 }
 
-void MainWindow::on_generator_infill_input_editingFinished()
+void MainWindow::on_simulation_reset_button_clicked()
 {
-    this->simulation.generator->set_infill(this->ui->generator_infill_input->value());
+    simulation.reset();
 }
 
-
-void MainWindow::on_outside_sum_radio_clicked()
-{
-    if (!this->simulation.get_outside_sum()){
-        simulation.set_outside_sum(true);
-        this->ui->inside_sum_radio->setChecked(false);
-    }
-}
-
-
-void MainWindow::on_inside_sum_radio_clicked()
-{
-    if (this->simulation.get_outside_sum()){
-        simulation.set_outside_sum(false);
-        this->ui->outside_sum_radio->setChecked(false);
-    }
-}
-
-// void MainWindow::receiveData(const QString &IP,const QString &PORT, bool isServer)
-// {
-//     // Wyświetlamy dane w QLabel w MainWindow (możesz zmienić na własne potrzeby)
-//     ip = IP;
-//     port = PORT;
-//     isServerW = isServer;
-// }
-
-// Wywołanie NetworkDialog
-/*void MainWindow::on_Network_clicked()
-{
-    if (ui->Network->text() == "Network") {
-        // Otwórz NetworkDialog w celu ustanowienia połączenia
-        if (!networkdialog) {
-            networkdialog = new NetworkDialog(this);
-            connect(networkdialog, &NetworkDialog::sendData, this, &MainWindow::handleNetworkInstance);
-        }
-        networkdialog->exec();
-    } else if (ui->Network->text() == "Disconnect") {
-        // Potwierdzenie rozłączenia
-        QMessageBox::StandardButton reply = QMessageBox::question(
-            this, "Disconnect", "Are you sure you want to disconnect?",
-            QMessageBox::Yes | QMessageBox::No);
-
-        if (reply == QMessageBox::Yes) {
-            if (isServerW && server) {
-                // Rozłącz serwer (powiadom klientów)
-                server->disconnectClients();
-                delete server;
-                server = nullptr;
-            } else if (!isServerW && client) {
-                // Powiadom serwer o rozłączeniu
-                client->notifyDisconnection();
-                delete client;
-                client = nullptr;
-            }
-
-            ui->Network->setText("Network"); // Zmień tekst przycisku
-            ui->labelConnected->setText("Disconnected");
-        }
-    }
-}*/
-// void MainWindow::on_Network_clicked()
-// {
-//     if (ui->Network->text() == "Network") {
-//         if (!networkdialog) {
-//             networkdialog = new NetworkDialog(this);
-
-//             // Podłączamy sygnał zamknięcia dialogu do resetu wskaźnika
-//             connect(networkdialog, &NetworkDialog::dialogClosed, [this]() {
-//                 networkdialog = nullptr;
-//             });
-
-//             // Podłączamy inne sygnały, jeśli są potrzebne
-//             connect(networkdialog, &NetworkDialog::sendData, this, &MainWindow::handleNetworkInstance);
-//         }
-//         networkdialog->show();  // Używamy show(), aby otworzyć okno dialogowe
-//     } else if (ui->Network->text() == "Disconnect") {
-//         QMessageBox::StandardButton reply = QMessageBox::question(
-//             this, "Disconnect", "Are you sure you want to disconnect?",
-//             QMessageBox::Yes | QMessageBox::No);
-
-//         if (reply == QMessageBox::Yes) {
-//             if (isServerW && server) {
-//                 server->disconnectClients();
-//                 delete server;
-//                 server = nullptr;
-//             } else if (!isServerW && client) {
-//                 client->notifyDisconnection();
-//                 delete client;
-//                 client = nullptr;
-//             }
-//             ui->Network->setText("Network");
-//         }
-//     }
-// }
 void MainWindow::on_Network_clicked()
 {
     if (ui->Network->text() == "Network") {
-        // Sprawdzenie, czy dialog już istnieje
         if (!networkdialog) {
             networkdialog = new NetworkDialog(this);
 
-            // Po zamknięciu dialogu resetujemy wskaźnik
             connect(networkdialog, &NetworkDialog::dialogClosed, [this]() {
                 networkdialog = nullptr;
             });
 
             connect(networkdialog, &NetworkDialog::sendData, this, &MainWindow::handleNetworkInstance);
         }
-        networkdialog->show(); // Otwieramy dialog
+        networkdialog->show();
     } else if (ui->Network->text() == "Disconnect") {
-        // Potwierdzenie rozłączenia
         QMessageBox::StandardButton reply = QMessageBox::question(
-            this, "Disconnect", "Are you sure you want to disconnect?",
-            QMessageBox::Yes | QMessageBox::No);
+            this, "Disconnect", "Are you sure you want to disconnect?", QMessageBox::Yes | QMessageBox::No);
 
         if (reply == QMessageBox::Yes) {
-            if (isServerW && server) {
+            if (server) {
                 server->disconnectClients();
                 delete server;
                 server = nullptr;
-            } else if (!isServerW && client) {
+            } else if (client) {
                 client->notifyDisconnection();
                 delete client;
                 client = nullptr;
@@ -556,44 +135,52 @@ void MainWindow::on_Network_clicked()
     }
 }
 
-void MainWindow::on_chackNetwork_clicked()
+void MainWindow::handleNetworkInstance(QObject *networkInstance)
 {
-    // Sprawdzamy serwer
-    if (server != nullptr) {
-        if (server->isListening()) {
-            ui->labelChacConnected->setText("All Right"); // Serwer działa
-        } else {
-            ui->labelChacConnected->setText("Error");
-        }
+    if (auto *serverInstance = qobject_cast<MyTCPServer *>(networkInstance)) {
+        server = serverInstance;
+        Simulation::get_instance().set_mode(SimulationMode::Server);
 
+        connect(&simulation, &Simulation::frameReadyToSendToClient, server, &MyTCPServer::sendFrame);
+
+        connect(server, &MyTCPServer::clientConnected, this, [this](QString clientAddress, quint16 clientPort) {
+            ui->labelConnected->setText("Client Connected");
+            ui->Network->setText("Disconnect");
+            QMessageBox::information(this, "New Connection",
+                                     QString("New client (ARX) from: ::ffff:%1").arg(clientAddress));
+        });
+
+        connect(server, &MyTCPServer::clientDisconnected, this, [this]() {
+            QMessageBox::information(this, "Disconnected", "Client has disconnected.");
+            ui->labelConnected->setText("No clients connected");
+            delete server;
+            server = nullptr;
+        });
+
+        updateControlsBasedOnRole(true);
+    } else if (auto *clientInstance = qobject_cast<MyTCPClient *>(networkInstance)) {
+        client = clientInstance;
+        Simulation::get_instance().set_mode(SimulationMode::Client);
+
+        connect(client, &MyTCPClient::serverDisconnected, this, [this]() {
+            QMessageBox::warning(this, "Connection Lost", "Server is not available.");
+            delete client;
+            client = nullptr;
+        });
+
+        ui->labelConnected->setText("Connecting...");
+        updateControlsBasedOnRole(false);
     }
-
-    // Sprawdzamy klienta
-    else if (client != nullptr) {
-        if (client->isConnected()) {
-            ui->labelChacConnected->setText("All Right"); // Klient jest połączony
-        } else {
-            ui->labelChacConnected->setText("Error");
-        }
-
-    }
-
-    // Jeśli nie ma ani serwera, ani klienta
-    else
-        ui->labelChacConnected->setText("Offline");
 }
 
-// Funkcja do zarządzania kontrolkami w zależności od trybu (Server/Client)
 void MainWindow::updateControlsBasedOnRole(bool isServer)
 {
-    // Blokuj/odblokuj przyciski sterowania symulacją
     ui->simulation_start_button->setEnabled(isServer);
     ui->simulation_stop_button->setEnabled(isServer);
     ui->simulation_reset_button->setEnabled(isServer);
     ui->simulation_interval_input->setEnabled(isServer);
     ui->simulation_duration_input->setEnabled(isServer);
 
-    // PID i Generator tylko dla serwera
     ui->pid_kp_input->setEnabled(isServer);
     ui->pid_ti_input->setEnabled(isServer);
     ui->pid_td_input->setEnabled(isServer);
@@ -602,97 +189,155 @@ void MainWindow::updateControlsBasedOnRole(bool isServer)
     ui->generator_generatortype_input->setEnabled(isServer);
     ui->generator_infill_input->setEnabled(isServer);
 
-    // ARX tylko dla klienta
     ui->arx_noise_input->setEnabled(!isServer);
     ui->arx_noisetype_input->setEnabled(!isServer);
     ui->arx_delay_input->setEnabled(!isServer);
     ui->arx_a_input->setEnabled(!isServer);
     ui->arx_b_input->setEnabled(!isServer);
-
-    // Ukryj wykresy po stronie klienta
-    ui->widget->setEnabled(isServer);
-    ui->widget_2->setEnabled(isServer);
-    ui->widget_3->setEnabled(isServer);
 }
 
-// Obsługa sygnału z `NetworkDialog`
-void MainWindow::handleNetworkInstance(QObject *networkInstance)
+void MainWindow::on_chackNetwork_clicked()
 {
-    if (auto *serverInstance = qobject_cast<MyTCPServer *>(networkInstance)) {
-        server = serverInstance;
-        Simulation::get_instance().set_mode(SimulationMode::Server);
-
-        // Sygnały start/stop/reset do klienta
-        connect(&simulation, &Simulation::simulation_start, server, &MyTCPServer::broadcastStart);
-        connect(&simulation, &Simulation::simulation_stop, server, &MyTCPServer::broadcastStop);
-        connect(&simulation, &Simulation::reset_chart, server, &MyTCPServer::broadcastReset);
-
-
-        // PODPIĘCIE: SYGNAŁ → SLOT
-        connect(&simulation, &Simulation::frameReadyToSendToClient,
-                server, &MyTCPServer::sendFrame);
-
-        // Obsługa nowego klienta
-        connect(server, &MyTCPServer::clientConnected, this, [this](QString clientAddress, quint16 clientPort) {
-            ui->labelConnected->setText("Client Connected");
-            ui->Network->setText("Disconnect"); // Zmień funkcję przycisku na "Disconnect"
-
-            // Wyświetlenie komunikatu w osobnym oknie
-            QMessageBox::information(this, "New Connection",
-                                     QString("New client (ARX) from: ::ffff:%1").arg(clientAddress));
-        });
-
-        // Dodaj komunikat, gdy klient się rozłączy
-        connect(server, &MyTCPServer::clientDisconnected, this, [this]() {
-            QMessageBox::information(this, "Disconnected", "Client has disconnected.");
-            ui->labelConnected->setText("No clients connected");
-            // Jeśli chcesz skasować instancję serwera (np. po rozłączeniu ostatniego klienta):
-            delete server;
-            server = nullptr;
-        });
-
-
-
-        // Ustawienie statusu serwera
-        ui->Network->setText("Disconnect");
-        ui->labelConnected->setText("Waiting for client...");
-
-        updateControlsBasedOnRole(true);
-
-    } else if (auto *clientInstance = qobject_cast<MyTCPClient *>(networkInstance)) {
-        client = clientInstance;
-        Simulation::get_instance().set_mode(SimulationMode::Client);
-
-        // PODPIĘCIE: SYGNAŁ → SLOT
-        connect(&simulation, &Simulation::frameReadyToSendToServer,
-                client, &MyTCPClient::sendFrame);
-
-        // Obsługa połączenia z serwerem
-        connect(client, &MyTCPClient::connected, this, [this](QString adr, int port) {
-            ui->Network->setText("Disconnect");
-            ui->labelConnected->setText("Connected");
-            if (networkdialog) {
-                networkdialog->close();
-            }
-            QMessageBox::information(this, "Connected",
-                                     QString("Connected to server (PID) at: ::ffff:%1:%2")
-                                         .arg(adr)
-                                         .arg(port));
-        });
-
-        // Dodaj komunikat, gdy serwer się rozłączy
-        connect(client, &MyTCPClient::serverDisconnected, this, [this]() {
-            QMessageBox::warning(this, "Connection Lost", "Server is not available.");
-            ui->labelConnected->setText("Disconnected");
-            ui->Network->setText("Network");
-            delete client;
-            client = nullptr;
-        });
-
-        ui->labelConnected->setText("Connecting...");
-
-        updateControlsBasedOnRole(false);
-
+    if (server && server->isListening()) {
+        ui->labelChacConnected->setText("All Right");
+    } else if (client && client->isConnected()) {
+        ui->labelChacConnected->setText("All Right");
+    } else {
+        ui->labelChacConnected->setText("Offline");
     }
 }
 
+void MainWindow::addSeriesFromFrame(const SimulationFrame &frame)
+{
+    chart->add_series("PID Output", frame.pid_output, ChartPosition::top);
+    chart->add_series("ARX Output", frame.arx_output, ChartPosition::bottom);
+    chart->add_series("Noise", frame.noise, ChartPosition::middle);
+}
+void MainWindow::on_pid_td_input_editingFinished()
+{
+    simulation.pid->set_td(ui->pid_td_input->value());
+}
+
+void MainWindow::on_pid_kp_input_editingFinished()
+{
+    simulation.pid->set_kp(ui->pid_kp_input->value());
+}
+
+void MainWindow::on_generator_amplitude_input_editingFinished()
+{
+    simulation.generator->set_amplitude(ui->generator_amplitude_input->value());
+}
+
+void MainWindow::on_generator_frequency_input_editingFinished()
+{
+    simulation.generator->set_frequency(ui->generator_frequency_input->value());
+}
+
+void MainWindow::on_arx_noise_input_editingFinished()
+{
+    simulation.arx->set_noise(ui->arx_noise_input->value());
+}
+
+void MainWindow::on_arx_noisetype_input_currentIndexChanged(int index)
+{
+    simulation.arx->set_noise_type(static_cast<NoiseType>(index));
+}
+
+void MainWindow::on_arx_delay_input_editingFinished()
+{
+    simulation.arx->set_delay(ui->arx_delay_input->value());
+}
+
+void MainWindow::on_arx_b_input_editingFinished()
+{
+    QString input = ui->arx_b_input->text();
+    QStringList b_values = input.split(",");
+    std::vector<float> b;
+
+    for (const QString& value : b_values) {
+        if (!value.isEmpty()) {
+            b.push_back(value.toFloat());
+        }
+    }
+
+    simulation.arx->set_b(b);
+}
+
+void MainWindow::on_arx_a_input_editingFinished()
+{
+    QString input = ui->arx_a_input->text();
+    QStringList a_values = input.split(",");
+    std::vector<float> a;
+
+    for (const QString& value : a_values) {
+        if (!value.isEmpty()) {
+            a.push_back(value.toFloat());
+        }
+    }
+
+    simulation.arx->set_a(a);
+}
+
+void MainWindow::action_simulation_export()
+{
+    // Implementacja eksportu symulacji
+    qDebug() << "Eksportowanie symulacji...";
+}
+
+void MainWindow::action_save_as()
+{
+    // Implementacja zapisu symulacji
+    qDebug() << "Zapisywanie symulacji...";
+}
+
+void MainWindow::action_open()
+{
+    // Implementacja otwierania symulacji
+    qDebug() << "Otwieranie symulacji...";
+}
+void MainWindow::on_pid_ti_input_editingFinished()
+{
+    simulation.pid->set_ti(ui->pid_ti_input->value());
+}
+
+void MainWindow::on_generator_generatortype_input_currentIndexChanged(int index)
+{
+    simulation.generator->set_type(static_cast<GeneratorType>(index));
+}
+
+void MainWindow::on_generator_infill_input_editingFinished()
+{
+    simulation.generator->set_infill(ui->generator_infill_input->value());
+}
+
+void MainWindow::on_outside_sum_radio_clicked()
+{
+    if (!simulation.get_outside_sum()) {
+        simulation.set_outside_sum(true);
+        ui->inside_sum_radio->setChecked(false);
+    }
+}
+
+void MainWindow::on_inside_sum_radio_clicked()
+{
+    if (simulation.get_outside_sum()) {
+        simulation.set_outside_sum(false);
+        ui->outside_sum_radio->setChecked(false);
+    }
+}
+
+void MainWindow::action_simulation_open()
+{
+    QString file_name = QFileDialog::getOpenFileName(this, "Open Simulation", "", "Simulation Files (*.sim)");
+    if (file_name.isEmpty()) return;
+
+    QFile file(file_name);
+    if (file.open(QIODevice::ReadOnly)) {
+        std::vector<std::byte> data(file.size());
+        file.read(reinterpret_cast<char *>(data.data()), data.size());
+        simulation.deserialize(data);
+        file.close();
+    }
+
+    init(); // Odśwież wartości w UI po otwarciu
+}

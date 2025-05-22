@@ -438,14 +438,28 @@ void Simulation::sendFrameToServer(const SimulationFrame &frame)
     qDebug() << "CLIENT sent ARX frame to server (tick):" << frame.tick;
 }
 
-void Simulation::receiveFrameFromServer(const SimulationFrame &frame)
-{
-    qDebug() << "CLIENT received frame from server (tick):" << frame.tick;
-    emit add_series("ARX", frame.arx_output, ChartPosition::bottom);
-}
 
 void Simulation::receiveFrameFromClient(const SimulationFrame &frame)
 {
     qDebug() << "SERVER received frame from client (tick):" << frame.tick;
     // Możesz tutaj zaktualizować wykresy serwera
 }
+void Simulation::receiveFrameFromServer(const SimulationFrame &frame) {
+    emit add_series("PID", frame.pid_output, ChartPosition::top);
+    emit add_series("ARX", frame.arx_output, ChartPosition::bottom);
+
+    SimulationFrame newFrame = frame;
+    newFrame.arx_output = this->arx->run(frame.pid_output);
+    newFrame.noise = this->arx->noise_part;
+
+    emit frameReadyToSendToServer(newFrame);
+}
+// void Simulation::generateAndSendFrame()
+// {
+//     SimulationFrame frame;
+//     frame.pid_output = pid->();
+//     frame.arx_output = arx->calculate(frame.pid_output);
+//     frame.noise = arx->getNoise();
+
+//     emit frameReadyToSendToClient(frame); // Emituj ramkę do serwera
+// }

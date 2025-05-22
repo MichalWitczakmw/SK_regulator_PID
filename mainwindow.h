@@ -9,6 +9,7 @@
 #include "networkserver.h"
 #include "simulation.h"
 #include "networkdialog.h"
+#include "chartwidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -80,6 +81,8 @@ private slots:
 
     void on_chackNetwork_clicked();
 
+    void addSeriesFromFrame(const SimulationFrame &frame);
+
 
 
 private:
@@ -93,6 +96,8 @@ private:
     NetworkDialog * networkdialog = nullptr;
     bool isServerW = 0;
     Ui::MainWindow *ui;
+    ChartWidget *chart; // Declare chart as a pointer to ChartWidget
+
 
     SimulationMode selected_network_mode = SimulationMode::Offline;
 };

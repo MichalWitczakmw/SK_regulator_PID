@@ -8,13 +8,19 @@ MyTCPServer::MyTCPServer(QObject *parent)
 }
 
 void MyTCPServer::broadcastStart() {
-    for (QTcpSocket* client : m_clients)
-        if (client->isOpen()) client->write("CMD_START");
+    for (QTcpSocket* client : m_clients) {
+        if (client->isOpen()) {
+            client->write("CMD_START");
+        }
+    }
 }
 
 void MyTCPServer::broadcastStop() {
-    for (QTcpSocket* client : m_clients)
-        if (client->isOpen()) client->write("CMD_STOP");
+    for (QTcpSocket* client : m_clients) {
+        if (client->isOpen()) {
+            client->write("CMD_STOP");
+        }
+    }
 }
 
 void MyTCPServer::broadcastReset() {
@@ -24,21 +30,14 @@ void MyTCPServer::broadcastReset() {
 
 void MyTCPServer::sendFrame(const SimulationFrame &frame)
 {
-    QByteArray payload;
-    QDataStream out(&payload, QIODevice::WriteOnly);
-    out << frame;
-
     QByteArray packet;
-    QDataStream packetStream(&packet, QIODevice::WriteOnly);
-
-    packetStream.writeRawData("FRAM", 4); // typ wiadomości
-    packetStream << quint32(payload.size()); // długość danych
-    packetStream.writeRawData(payload.constData(), payload.size());
+    QDataStream out(&packet, QIODevice::WriteOnly);
+    out << frame; // Serializuj ramkę symulacji
 
     for (QTcpSocket* client : m_clients) {
-        if (client && client->isOpen()) {
-            client->write(packet);
-            qDebug() << "SERVER sent frame to client (tick):" << frame.tick;
+        if (client->isOpen()) {
+            client->write(packet); // Wyślij dane do klienta
+            client->flush(); // Upewnij się, że dane są natychmiast wysyłane
         }
     }
 }
