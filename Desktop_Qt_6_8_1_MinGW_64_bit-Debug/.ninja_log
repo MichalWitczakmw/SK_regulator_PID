@@ -1,0 +1,21 @@
+# ninja log v6
+16	2240	7699031452060020	regulatixPRO_autogen/timestamp	45ff53a911545a64
+16	2240	7699031452060020	regulatixPRO_autogen/mocs_compilation.cpp	45ff53a911545a64
+16	2240	7699031452060020	C:/Users/remza/Downloads/projekcik(1)/pk24-projekt-remzak-lew-main/build/Desktop_Qt_6_8_1_MinGW_64_bit-Debug/regulatixPRO_autogen/timestamp	45ff53a911545a64
+16	2240	7699031452060020	C:/Users/remza/Downloads/projekcik(1)/pk24-projekt-remzak-lew-main/build/Desktop_Qt_6_8_1_MinGW_64_bit-Debug/regulatixPRO_autogen/mocs_compilation.cpp	45ff53a911545a64
+2248	2333	7699031454057941	regulatixPRO_autogen/EWIEGA46WW/qrc_resources.cpp	7e9f7b7d9656d406
+2248	2333	7699031454057941	C:/Users/remza/Downloads/projekcik(1)/pk24-projekt-remzak-lew-main/build/Desktop_Qt_6_8_1_MinGW_64_bit-Debug/regulatixPRO_autogen/EWIEGA46WW/qrc_resources.cpp	7e9f7b7d9656d406
+2393	2555	7699031454740354	CMakeFiles/regulatixPRO.dir/regulatixPRO_autogen/EWIEGA46WW/qrc_resources.cpp.obj	3160338bbc6f41b2
+2356	9253	7699031454372742	CMakeFiles/regulatixPRO.dir/generator.cpp.obj	64dc79d529e5b623
+2352	9361	7699031454332754	CMakeFiles/regulatixPRO.dir/pid.cpp.obj	19b6716f9eca2b7c
+2376	9863	7699031454566526	CMakeFiles/regulatixPRO.dir/myserver.cpp.obj	c22efcd6b353f52d
+2336	9916	7699031454169678	CMakeFiles/regulatixPRO.dir/main.cpp.obj	ea0aca1e0cb977ca
+2371	10012	7699031454516502	CMakeFiles/regulatixPRO.dir/arxdialog.cpp.obj	6a3d566e6fd0af78
+2365	10043	7699031454464477	CMakeFiles/regulatixPRO.dir/exportdialog.cpp.obj	93a804a5fbc7b134
+2344	10177	7699031454249680	CMakeFiles/regulatixPRO.dir/simulation.cpp.obj	733c72e7d4da0094
+2380	10182	7699031454616976	CMakeFiles/regulatixPRO.dir/serverdialog.cpp.obj	108925a6c84ebcf5
+2348	10191	7699031454289691	CMakeFiles/regulatixPRO.dir/arx.cpp.obj	3968b72afaf5774c
+2361	10492	7699031454414434	CMakeFiles/regulatixPRO.dir/chartwidget.cpp.obj	931df8c805e48a94
+2333	11063	7699031454139665	CMakeFiles/regulatixPRO.dir/regulatixPRO_autogen/mocs_compilation.cpp.obj	58f66ec98658c626
+2340	11666	7699031454209668	CMakeFiles/regulatixPRO.dir/mainwindow.cpp.obj	a351e0907611be4b
+11666	12561	7699031547471110	regulatixPRO.exe	440fa34f721deac2

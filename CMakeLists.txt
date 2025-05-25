@@ -9,9 +9,10 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Charts)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Network)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
 
 set(PROJECT_SOURCES
@@ -34,9 +35,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         exportdialog.h exportdialog.cpp exportdialog.ui
         resources.qrc
         arxdialog.h arxdialog.cpp arxdialog.ui
-        networkdialog.h networkdialog.cpp networkdialog.ui
-        networkclient.h networkclient.cpp
-        networkserver.h networkserver.cpp
+        myserver.h myserver.cpp
+        serverdialog.h serverdialog.cpp serverdialog.ui
 
 
     )

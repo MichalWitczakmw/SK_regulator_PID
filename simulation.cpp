@@ -1,4 +1,5 @@
 #include "simulation.h"
+#include "myserver.h"
 
 Simulation::Simulation(QObject *parent)
     : QObject{parent}
@@ -47,189 +48,55 @@ void memcopy_s(void *dest, const T &src, size_t size = 1)
 void Simulation::simulate()
 {
     static float error = 0;
-    static float arx_output = 0;
     static float pid_output = 0;
     static float generator = 0;
-    switch (mode) {
-    case SimulationMode::Offline:
-    {
 
+    const size_t tick = this->get_tick();
 
-        const size_t tick = this->get_tick();
-        // const float time = interval / 1000.0f ;
-        this->current_time += interval / 1000.0f;
+    this->current_time += interval / 1000.0f;
 
-        generator = this->generator->run(current_time);
+    generator = this->generator->run(current_time);
 
-        error = generator - arx_output;
+    error = generator - arx_output;
 
-        pid_output = this->pid->run(error);
+    pid_output = this->pid->run(error);
 
+    if (!(MyServer::getInstance()->server->isListening() && MyServer::getInstance()->clientSocket)){
         arx_output = this->arx->run(pid_output);
-
-        SimulationFrame frame{
-            .tick = tick,
-            .geneartor_output = generator,
-            .p = this->pid->proportional_part,
-            .i = this->pid->integral_part,
-            .d = this->pid->derivative_part,
-            .pid_output = pid_output,
-            .error = error,
-            .arx_output = arx_output,
-            .noise = this->arx->noise_part,
-        };
-
-        this->frames.push_back(frame);
-
-        emit this->add_series("I", this->pid->integral_part, ChartPosition::top);
-        emit this->add_series("D", this->pid->derivative_part, ChartPosition::top);
-        emit this->add_series("P", this->pid->proportional_part, ChartPosition::top);
-        emit this->add_series("PID", pid_output, ChartPosition::top);
-
-        emit this->add_series("Generator", generator, ChartPosition::bottom);
-
-        emit this->add_series("Error", error, ChartPosition::middle);
-
-        emit this->add_series("ARX", arx_output, ChartPosition::bottom);
-        emit this->add_series("Noise", this->arx->noise_part, ChartPosition::middle);
-
-        emit this->update_chart();
-
-        this->tick++;
-        break;
     }
-    case SimulationMode::Server:
-    {
-        // Synchronizacja: serwer czeka na odpowiedź od klienta!
 
-        // Increment the timer if waiting for a client
-        if (waitingForClient) {
-            time_since_last_response += interval / 1000.0f; // Increment time in seconds
-        }
+    SimulationFrame frame{
+        .tick = tick,
+        .geneartor_output = generator,
+        .current_time = current_time,
+        .p = this->pid->proportional_part,
+        .i = this->pid->integral_part,
+        .d = this->pid->derivative_part,
+        .pid_output = pid_output,
+        .error = error,
+        .arx_output = arx_output,
+        .noise = this->arx->noise_part,
+    };
 
-        // Dodaj zmienną członkowską klasy: bool waitingForClient = false;
-        if (!waitingForClient || (time_since_last_response >= timeout_threshold)) {
-            const size_t tick = this->get_tick();
-            this->current_time += interval / 1000.0f;
+    emit serverSendData(frame);
 
-            generator = this->generator->run(current_time);
-            error = generator - 0; // ARX output jeszcze nieznany na tym etapie na serwerze
+    this->frames.push_back(frame);
 
-            pid_output = this->pid->run(error);
+    emit this->add_series("I", this->pid->integral_part, ChartPosition::top);
+    emit this->add_series("D", this->pid->derivative_part, ChartPosition::top);
+    emit this->add_series("P", this->pid->proportional_part, ChartPosition::top);
+    emit this->add_series("PID", pid_output, ChartPosition::top);
 
-            SimulationFrame frame{
-                .tick = tick,
-                .geneartor_output = generator,
-                .p = this->pid->proportional_part,
-                .i = this->pid->integral_part,
-                .d = this->pid->derivative_part,
-                .pid_output = pid_output,
-                .error = error,
-                .arx_output = 0.0f, // Uzupełni klient
-                .noise = 0.0f,      // Uzupełni klient
-            };
+    emit this->add_series("Generator", generator, ChartPosition::bottom);
+    ;
+    emit this->add_series("Error", error, ChartPosition::middle);
 
-            this->frames.push_back(frame);
+    emit this->add_series("ARX", arx_output, ChartPosition::bottom);
+    emit this->add_series("Noise", this->arx->noise_part, ChartPosition::middle);
 
-            // <-- Wykresy tylko na serwerze -->
-            emit this->add_series("I", frame.i, ChartPosition::top);
-            emit this->add_series("D", frame.d, ChartPosition::top);
-            emit this->add_series("P", frame.p, ChartPosition::top);
-            emit this->add_series("PID", frame.pid_output, ChartPosition::top);
-            emit this->add_series("Generator", frame.geneartor_output, ChartPosition::bottom);
-            emit this->add_series("Error", frame.error, ChartPosition::middle);
-            emit this->add_series("ARX", frame.arx_output, ChartPosition::bottom); // na razie 0
-            emit this->add_series("Noise", frame.noise, ChartPosition::middle);    // na razie 0
-            emit this->update_chart();
+    emit this->update_chart();
 
-            sendFrameToClient(frame);
-
-            waitingForClient = true; // Czekaj na odpowiedź od klienta!
-            time_since_last_response = 0.0f;
-        }
-        // Jeśli waitingForClient == true, nie rób nic – czekaj na receiveFrameFromClient()
-        break;
-    }
-    case SimulationMode::Client:
-    {
-        qDebug() << "CLIENT TRYB";
-        // Synchronizacja: klient czeka na ramkę od serwera!
-        if (pendingFrameFromServer) {
-            SimulationFrame& frame = *pendingFrameFromServer;
-            qDebug() << "CLIENT MA RAMKE";
-            // Licz ARX/noise
-            float arx_zmienna = this->arx->run(frame.pid_output);
-            frame.arx_output = arx_zmienna;
-            frame.noise = this->arx->noise_part;
-            qDebug() << "CLIENT OBLICZYL";
-            // <-- Wykresy tylko na serwerze -->
-            emit this->add_series("I", frame.i, ChartPosition::top);
-            emit this->add_series("D", frame.d, ChartPosition::top);
-            emit this->add_series("P", frame.p, ChartPosition::top);
-            emit this->add_series("PID", frame.pid_output, ChartPosition::top);
-            emit this->add_series("Generator", frame.geneartor_output, ChartPosition::bottom);
-            emit this->add_series("Error", frame.error, ChartPosition::middle);
-            emit this->add_series("ARX", frame.arx_output, ChartPosition::bottom); // na razie 0
-            emit this->add_series("Noise", frame.noise, ChartPosition::middle);    // na razie 0
-            emit this->update_chart();
-
-            // Zachowaj ramkę
-            this->frames.push_back(frame);
-
-            // UWAGA: Klient NIE emituje sygnałów do wykresów!
-            // (możesz te linie usunąć lub zakomentować)
-
-            sendFrameToServer(frame);
-            qDebug() << "CLIENT WYWOŁAŁ WYSŁANIE";
-            pendingFrameFromServer.reset();
-        }
-        // Jeśli nie ma pendingFrameFromServer – czekaj na receiveFrameFromServer()
-        break;
-    }
-}
-}
-void Simulation::sendFrameToClient(const SimulationFrame &frame)
-{
-    // Tutaj wywołujesz sygnał, do którego podłączysz klasę obsługującą wysyłanie przez sieć
-    emit frameReadyToSendToClient(frame);
-    qDebug() << "wsysłanie do frame ready to sent to client";
-
-}
-
-// void Simulation::sendFrameToServer(const SimulationFrame &frame)
-// {
-//     emit frameReadyToSendToServer(frame);
-//     qDebug() << "CLIENT WYWOŁAŁ  WYSŁANIE RAMKI DO SERVERA";
-// }
-
-// void Simulation::receiveFrameFromServer(const SimulationFrame &frame)
-// {
-//     // Otrzymujemy bramkę od serwera (po stronie klienta)
-//     pendingFrameFromServer = frame;
-//     qDebug() << "CLIENT OTRZYMAŁ RAMKĘ:" << frame.tick;
-
-// }
-
-// void Simulation::receiveFrameFromClient(const SimulationFrame &frame)
-// {
-//     qDebug() << "receiveFrameFromClient jest opdalony";
-//     // Otrzymujemy bramkę od klienta (po stronie serwera) — uzupełnij ostatnią ramkę w historii
-//     if (!frames.empty()) {
-//         // Zakładamy, że ostatnia ramka to ta, którą wysłaliśmy do klienta
-//         SimulationFrame &last = frames.back();
-//         last.arx_output = frame.arx_output;
-//         last.noise = frame.noise;
-//         qDebug() << "receiveFrameFromClient zdonył bramke";
-//         // Możesz tu dodać kod do aktualizacji wykresów po stronie serwera, jeśli chcesz
-//     }
-//     waitingForClient = false;
-
-// }
-
-void Simulation::update_timeout_threshold()
-{
-    // Convert interval (ms) to seconds and calculate 80% of it
-    timeout_threshold = (interval / 1000.0f) * 0.8f;
+    this->tick++;
 }
 
 void Simulation::set_ticks_per_second(float ticks_per_second)
@@ -283,7 +150,6 @@ void Simulation::set_duration(float duration)
 void Simulation::set_interval(int interval)
 {
     this->interval = interval;
-    update_timeout_threshold(); // Recalculate timeout threshold
 }
 
 int Simulation::get_interval() const
@@ -418,48 +284,3 @@ bool Simulation::get_outside_sum() const
 {
     return this->is_outside_sum;
 }
-
-// wpisz tutaj
-void Simulation::set_mode(SimulationMode mode)
-{
-    if (this->mode != mode) {
-        this->mode = mode;
-        // (opcjonalnie: emituj sygnał o zmianie trybu, jeśli chcesz reagować w GUI)
-    }
-}
-
-SimulationMode Simulation::get_mode() const
-{
-    return this->mode;
-}
-void Simulation::sendFrameToServer(const SimulationFrame &frame)
-{
-    emit frameReadyToSendToServer(frame);
-    qDebug() << "CLIENT sent ARX frame to server (tick):" << frame.tick;
-}
-
-
-void Simulation::receiveFrameFromClient(const SimulationFrame &frame)
-{
-    qDebug() << "SERVER received frame from client (tick):" << frame.tick;
-    // Możesz tutaj zaktualizować wykresy serwera
-}
-void Simulation::receiveFrameFromServer(const SimulationFrame &frame) {
-    emit add_series("PID", frame.pid_output, ChartPosition::top);
-    emit add_series("ARX", frame.arx_output, ChartPosition::bottom);
-
-    SimulationFrame newFrame = frame;
-    newFrame.arx_output = this->arx->run(frame.pid_output);
-    newFrame.noise = this->arx->noise_part;
-
-    emit frameReadyToSendToServer(newFrame);
-}
-// void Simulation::generateAndSendFrame()
-// {
-//     SimulationFrame frame;
-//     frame.pid_output = pid->();
-//     frame.arx_output = arx->calculate(frame.pid_output);
-//     frame.noise = arx->getNoise();
-
-//     emit frameReadyToSendToClient(frame); // Emituj ramkę do serwera
-// }

@@ -31,14 +31,6 @@ void ChartWidget::reset()
 
     this->set_ranges();
     this->axis_y->setRange(-1, 1);
-    chart->removeAllSeries();
-    chart->removeAxis(axis_x);
-    chart->removeAxis(axis_y);
-    axis_x->setRange(0, 10);    // Lub inne domyślne zakresy
-    axis_y->setRange(-1, 1);
-    chart->addAxis(axis_x, Qt::AlignBottom);
-    chart->addAxis(axis_y, Qt::AlignLeft);
-    chart->update();
 }
 
 ChartWidget::~ChartWidget()
@@ -163,14 +155,4 @@ void ChartWidget::update_chart()
 void ChartWidget::scroll_chart()
 {
     this->axis_x->setRange(0, this->simulation.get_tick());
-}
-void ChartWidget::initialize_chart()
-{
-    // Resetuj wykres
-    this->reset();
-
-    // Dodaj domyślną serię
-    this->add_series("Default Series", 0.0, ChartPosition::bottom);
-
-    qDebug() << "Chart initialized after client connected.";
 }

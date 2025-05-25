@@ -8,12 +8,6 @@
 #include "generator.h"
 #include "pid.h"
 
-enum class SimulationMode {
-    Offline,
-    Server,
-    Client
-};
-
 enum class ChartPosition {
     top,
     middle,
@@ -31,6 +25,8 @@ struct SimulationFrame
     size_t tick;
     float geneartor_output;
 
+    float current_time;
+
     float p;
     float i;
     float d;
@@ -42,42 +38,18 @@ struct SimulationFrame
     float noise;
 };
 
-inline QDataStream &operator<<(QDataStream &out, const SimulationFrame &frame) {
-    out << static_cast<quint32>(frame.tick)
-    << frame.geneartor_output
-    << frame.p << frame.i << frame.d
-    << frame.pid_output
-    << frame.error
-    << frame.arx_output
-    << frame.noise;
-    return out;
-}
-
-inline QDataStream &operator>>(QDataStream &in, SimulationFrame &frame) {
-    quint32 tick;
-    in >> tick
-        >> frame.geneartor_output
-        >> frame.p >> frame.i >> frame.d
-        >> frame.pid_output
-        >> frame.error
-        >> frame.arx_output
-        >> frame.noise;
-    frame.tick = tick;
-    return in;
-}
-
 class Simulation : public QObject
 {
     Q_OBJECT
 public:
     static Simulation &get_instance();
-    void updateChartWithFrame(const SimulationFrame &frame);
-
-    void set_mode(SimulationMode mode);
-    SimulationMode get_mode() const;
+    float current_time{0};
+        size_t tick{0};
 
     void start();
     void stop();
+
+    float arx_output{0};
 
     void set_ticks_per_second(float ticks_per_second);
     void set_duration(float duration);
@@ -112,15 +84,6 @@ public:
     std::vector<std::byte> serialize();
     void deserialize(std::vector<std::byte> data);
 
-    // Nowe metody do komunikacji
-    void sendFrameToClient(const SimulationFrame &frame); // serwer -> klient
-    void sendFrameToServer(const SimulationFrame &frame); // klient -> serwer
-    void receiveFrameFromClient(const SimulationFrame &frame);
-    void receiveFrameFromServer(const SimulationFrame &frame);
-
-    void set_timeout_threshold(float timeout) { timeout_threshold = timeout; }
-    float get_timeout_threshold() const { return timeout_threshold; }
-
 signals:
     void simulation_start();
     void simulation_stop();
@@ -128,35 +91,23 @@ signals:
     void reset_chart();
     void update_chart();
     void add_series(QString series_name, float y, ChartPosition position);
-
-    // Sygnały do integracji z warstwą sieciową
-    void frameReadyToSendToClient(const SimulationFrame &frame); // serwer -> klient
-    void frameReadyToSendToServer(const SimulationFrame &frame); // klient -> serwer
+    void serverSendData(SimulationFrame frame);
 
 protected:
     void timerEvent(QTimerEvent *event) override;
 
 private:
-
-    SimulationMode mode{SimulationMode::Offline};
-    std::optional<SimulationFrame> pendingFrameFromServer;
-
     void simulate();
 
     bool is_outside_sum{true};
     float ticks_per_second{60};
-    size_t tick{0};
-    float current_time{0};
+
+
     size_t timer_id{0};
-    int interval{250};
+    int interval{100};
 
     explicit Simulation(QObject *parent = nullptr);
     ~Simulation();
-
-    bool waitingForClient = false;
-    float time_since_last_response = 0.0f; // Time elapsed since the last response
-    float timeout_threshold = 5.0f;       // Timeout in seconds
-    void update_timeout_threshold();      // Method to update timeout threshold
 
 signals:
 };
