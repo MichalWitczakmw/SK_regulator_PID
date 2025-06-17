@@ -88,6 +88,11 @@ float PID::run(float error)
     this->run_derivative(error);
     this->run_proportional(error);
 
+    qDebug() << "PID output: "
+             << this->integral_part << ", "
+             << this->derivative_part << ", "
+             << this->proportional_part;
+
     return this->integral_part + this->derivative_part + this->proportional_part;
 }
 

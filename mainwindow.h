@@ -3,13 +3,8 @@
 
 #include <QAction>
 #include <QMainWindow>
-#include <QTcpServer>
-#include <QTcpSocket>
-#include "networkclient.h"
-#include "networkserver.h"
 #include "simulation.h"
-#include "networkdialog.h"
-#include "chartwidget.h"
+#include "myserver.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -25,16 +20,9 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void updateControlsBasedOnRole(bool isServer);
-    bool isConnectionValid() const;
-
-
 private slots:
     void simulation_start();
     void simulation_stop();
-
-    //void receiveData(const QString &IP,const QString &PORT, bool isServer);
-    void handleNetworkInstance(QObject *networkInstance); // Slot do odbioru wskaźnika instancji
 
     // simulation
 
@@ -48,7 +36,7 @@ private slots:
     void on_pid_td_input_editingFinished();
     void on_pid_kp_input_editingFinished();
 
-    // generator
+    // pid
 
     void on_generator_amplitude_input_editingFinished();
     void on_generator_frequency_input_editingFinished();
@@ -77,28 +65,23 @@ private slots:
 
     void on_inside_sum_radio_clicked();
 
-    void on_Network_clicked();
+    void on_network_button_clicked();
 
-    void on_chackNetwork_clicked();
+    void on_disconnect_button_clicked();
 
-    void addSeriesFromFrame(const SimulationFrame &frame);
+    void set_server_gui(bool state);
+    void set_client_gui(bool state);
+    void set_gui_enabled();
 
+    void set_values();
 
+    void send_config();
 
 private:
     void init();
 
+    MyServer *server{nullptr};
     Simulation &simulation;
-    MyTCPServer *server = nullptr;
-    MyTCPClient *client = nullptr;
-    QString ip;
-    QString port;
-    NetworkDialog * networkdialog = nullptr;
-    bool isServerW = 0;
     Ui::MainWindow *ui;
-    ChartWidget *chart; // Declare chart as a pointer to ChartWidget
-
-
-    SimulationMode selected_network_mode = SimulationMode::Offline;
 };
 #endif // MAINWINDOW_H
